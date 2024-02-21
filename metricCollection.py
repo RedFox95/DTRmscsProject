@@ -1,6 +1,7 @@
 import sched
 import time
 import psutil
+from flask import Flask
 
 # Function to collect and print metrics
 def collect_metrics():
