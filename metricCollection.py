@@ -1,7 +1,18 @@
 import sched
 import time
 import psutil
-from flask import Flask
+from flask import Flask, render_template
+
+app = Flask(__name__)
+
+p = psutil.Process()
+
+@app.route('/')
+def system_metrics():
+    return render_template('index.html', cpu_percent=p.cpu_percent());
+
+if __name__ == '__main__':
+    app.run()
 
 # Function to collect and print metrics
 def collect_metrics():
