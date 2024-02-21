@@ -1,0 +1,17 @@
+# Python files and directories
+*.py[co]
+__pycache__/
+
+# IDEs and code editors
+.vscode/
+.vs/
+.idea/
+.env
+.venv/
+venv/
+ENV/
+
+# System generated files and directories
+*.swp
+*.swo
+.DS_Store
