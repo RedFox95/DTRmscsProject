@@ -1,0 +1,17 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>System Info Dashboard</title>
+</head>
+<body>
+    <h1>CPU Information</h1>
+    <ul>
+        {% for cpu in cpus %}
+        <li>Physical Count: {{ cpu.physical_count }}, Logical Count: {{ cpu.logical_count }}, Speed: {{ cpu.speed }} MHz</li>
+        {% else %}
+        <li>No CPU data available.</li>
+        {% endfor %}
+    </ul>
+</body>
+</html>
