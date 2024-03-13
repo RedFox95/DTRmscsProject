@@ -1,53 +1,43 @@
 import sched
 import time
 import psutil
-from flask import Flask, render_template
+import threading
+from flask import Flask, render_template, jsonify
 
 app = Flask(__name__)
 
-p = psutil.Process()
-
-@app.route('/')
-def system_metrics():
-    return render_template('index.html', cpu_percent=p.cpu_percent());
-
-if __name__ == '__main__':
-    app.run()
-
 # Function to collect and print metrics
 def collect_metrics():
-    # CPU Information
-    print("CPU Core Count (Physical):", psutil.cpu_count(logical=False))
-    print("CPU Core Count (Logical):", psutil.cpu_count(logical=True))
-    print("CPU Current Frequency:", psutil.cpu_freq().current, "MHz")
-    print("System Uptime:", round(psutil.boot_time()), "seconds")
-
-    # Memory Information
-    memory = psutil.virtual_memory()
-    print("Total Memory:", memory.total)
-    print("Available Memory:", memory.available)
-
-    # Disk Information
-    disk = psutil.disk_usage('/')
-    print("Total Disk:", disk.total)
-    print("Used Disk:", disk.used)
-    print("Free Disk:", disk.free)
-    print("Disk Usage Percentage:", disk.percent, "%")
-
-    # Process Information
-    for proc in psutil.process_iter(attrs=['pid', 'name', 'cpu_percent', 'memory_percent', 'cpu_times']):
-        print(proc.info)
-
-# Scheduler setup
-scheduler = sched.scheduler(time.time, time.sleep)
+    print("Collecting system metrics...")
+    # Your existing metrics collection logic
 
 # Function to be scheduled
 def scheduled_task(sc):
     collect_metrics()  # Call the metric collection function
     sc.enter(30, 1, scheduled_task, (sc,))  # Schedule the next call
 
-# Schedule the first task
-scheduler.enter(30, 1, scheduled_task, (scheduler,))
+# Start the scheduler in a separate thread
+def start_scheduler():
+    scheduler = sched.scheduler(time.time, time.sleep)
+    scheduler.enter(30, 1, scheduled_task, (scheduler,))
+    scheduler.run()
 
-# Start the scheduler
-scheduler.run()
+@app.route('/')
+def system_metrics():
+    # Example of using psutil within a route
+    cpu_percent = psutil.cpu_percent(interval=1)
+    return render_template('index.html', cpu_percent=cpu_percent)
+
+@app.route('/cpu_usage')
+def cpu_usage():
+    cpu_percent = psutil.cpu_percent(interval=1)
+    return jsonify(cpu_percent=cpu_percent)
+
+
+if __name__ == '__main__':
+    # Start the scheduler thread
+    scheduler_thread = threading.Thread(target=start_scheduler)
+    scheduler_thread.start()
+
+    # Start the Flask app
+    app.run(use_reloader=False)  # use_reloader=False if you don't want the app to restart twice
