@@ -3,11 +3,29 @@
 <head>
     <meta charset="UTF-8">
     <title>System Metrics</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
 </head>
 <body>
-    <h1>System Metrics</h1>
-    <div>Next refresh in: <span id="countdown">30</span> seconds</div>
-    <div>CPU Usage: <span id="cpu-usage">Loading...</span>%</div>
+
+    <div id="dashboard">
+        <div class="section" id="cpu-section">
+            <h2>CPU</h2>
+            <div>CPU Usage: <span id="cpu-usage">Loading...</span>%</div>
+        </div>
+        <div class="section" id="memory-section">
+            <h2>Memory</h2>
+            <div>Memory Usage: <span id="memory-usage">Loading...</span>%</div>
+        </div>
+        <div class="section" id="disk-section">
+            <h2>Disk</h2>
+            <div>Disk Usage: <span id="disk-usage">Loading...</span>%</div>
+        </div>
+        <div class="section" id="process-section">
+            <h2>Process</h2>
+            <div>CPU Usage: <span id="cpu-usage">Loading...</span>%</div>
+        </div>
+    </div>
+
 
     <script>
         let countdownInterval;
