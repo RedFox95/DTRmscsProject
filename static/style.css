@@ -1,6 +1,6 @@
 #dashboard {
     font-family: 'Arial', sans-serif;
-    background-color: #000;
+    background-color: #f4f4f4; /* Changed to lighter color for visibility */
     padding: 20px;
     color: #333;
 }
@@ -11,12 +11,19 @@
     padding: 15px;
     border-radius: 6px;
     box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+    color: #333; /* Ensuring text color is dark for readability */
 }
 
 .section h2 {
     border-bottom: 2px solid #e1e1e1;
     padding-bottom: 10px;
     margin-bottom: 20px;
+    color: #333; /* Text color for the section headers */
+}
+
+/* Adjustments for individual sections */
+#cpu-section, #memory-section, #disk-section, #process-section {
+    /* Add any specific styles for sections here if needed */
 }
 
 /* Add any additional styling for charts, bars, and tables */
@@ -47,10 +54,9 @@
     height: 20px;
     border-radius: 4px;
     background-color: #4CAF50;
-    width: 0%; /* Set with inline styles or JS */
+    width: 0%; /* This will be dynamically set with inline styles or JavaScript */
     text-align: right;
     padding-right: 5px;
     box-sizing: border-box;
+    color: #fff; /* Text color inside the progress bar */
 }
-
-/* For the line chart, you may want to use a JS library like Chart.js */
