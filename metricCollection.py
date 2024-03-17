@@ -56,6 +56,29 @@ def get_memory_info():
         'percent': memory_percent
     }
 
+def get_disk_info():
+    disks = []
+    for partition in psutil.disk_partitions():
+        usage = psutil.disk_usage(partition.mountpoint)
+        disks.append({
+            'device': partition.device,
+            'mountpoint': partition.mountpoint,
+            'total': usage.total / (1024 ** 3),  # Convert to GB
+            'used': usage.used / (1024 ** 3),  # Convert to GB
+            'percent': usage.percent
+        })
+    return disks
+
+def get_process_info():
+    processes = []
+    for process in psutil.process_iter(['pid', 'name', 'cpu_percent', 'memory_percent', 'cpu_times', 'create_time']):
+        try:
+            processes.append(process.info)
+        except (psutil.NoSuchProcess, psutil.AccessDenied, psutil.ZombieProcess):
+            pass
+    return processes
+
+
 
 @app.route('/')
 def home():
@@ -78,7 +101,9 @@ def cpu_usage():
 def api_system_metrics():
     cpu_percent = psutil.cpu_percent(interval=1)
     memory_info = get_memory_info()
-    # Construct the response data
+    disk_info = get_disk_info()
+    process_info = get_process_info()
+
     response_data = {
         'cpu_usage': {
             'percent': cpu_percent,
@@ -87,9 +112,12 @@ def api_system_metrics():
             'speed': get_cpu_speed(),
             'uptime': get_cpu_uptime()
         },
-        'memory_info': memory_info
+        'memory_info': memory_info,
+        'disk_info': disk_info,
+        'process_info': process_info
     }
     return jsonify(response_data)
+
 
 
 
