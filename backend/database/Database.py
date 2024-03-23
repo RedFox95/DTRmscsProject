@@ -1,6 +1,5 @@
 import sqlite3
 import time 
-import logging
 
 class Database:
     def __init__(self, dbName) -> None:
@@ -19,7 +18,6 @@ class Database:
     def addSystemMetrics(self, cpuUsage, memoryUsage, diskUsage):
         currentTimestamp = time.time()
         insertQuery = "insert into SystemMetrics values ({time}, {cUsage}, {mUsage}, {dUsage})".format(time=currentTimestamp, cUsage=cpuUsage, mUsage=memoryUsage, dUsage=diskUsage)
-        print(insertQuery)
         self.cursor.execute(insertQuery)
 
     def addProcessMetrics(self, pid, name, executionTime, cpuUsage, memoryUsage):
@@ -29,20 +27,16 @@ class Database:
         if self.cursor.fetchall() == []:
             # this process is not in the Processes table yet, add it
             insertProcessQuery = "insert into Processes values ({id}, '{pName}', {eTime})".format(id=pid, pName=name, eTime=executionTime)
-            print(insertProcessQuery)
             self.cursor.execute(insertProcessQuery)
         else:
             # this process is already in the Processes table, update execution time
             updateProcessQuery = "update Processes set executionTime={eTime} where pid={id}".format(eTime=executionTime, id=pid)
-            print(updateProcessQuery)
             self.cursor.execute(updateProcessQuery)
         # add the metrics to the ProcessMetrics table no matter what 
         insertMetricsQuery = "insert into ProcessMetrics values ({id}, {time}, {cUsage}, {mUsage})".format(id=pid, time=currentTimestamp, cUsage=cpuUsage, mUsage=memoryUsage)
-        print(insertMetricsQuery)
         self.cursor.execute(insertMetricsQuery)
 
     def pruneSystemMetrics(self):
-        logging.debug("-> pruneSystemMetrics")
         # get the oldest timestamp 
         oldestTimeQuery = "select min(timestamp) from SystemMetrics;"
         self.cursor.execute(oldestTimeQuery)
