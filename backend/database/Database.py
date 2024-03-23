@@ -36,6 +36,10 @@ class Database:
         insertMetricsQuery = "insert into ProcessMetrics values ({id}, {time}, {cUsage}, {mUsage})".format(id=pid, time=currentTimestamp, cUsage=cpuUsage, mUsage=memoryUsage)
         self.cursor.execute(insertMetricsQuery)
 
+    '''
+    Prune the system metrics by removing them from the SystemMetrics table and adding the average of the values into the PrunedSystemMetrics table.
+    Usage note: this should only be called via the pruneData method and unit tests.
+    '''
     def pruneSystemMetrics(self):
         # get the oldest timestamp 
         oldestTimeQuery = "select min(timestamp) from SystemMetrics;"
@@ -74,6 +78,10 @@ class Database:
         addPrunedQuery = "insert into PrunedSystemMetrics values ({start}, {end}, {cpu}, {memory}, {disk});".format(start=oldestTimestamp, end=newestTimestamp, cpu=cpuAvg, memory=memoryAvg, disk=diskAvg)
         self.cursor.execute(addPrunedQuery)
 
+    '''
+    Prunes the process metrics data by removing data for any processes that have not been active for over a week.
+    Usage note: this should only be called via the pruneData method and unit tests.
+    '''
     def pruneProcessMetrics(self):
         # get all pids from processes table
         allPidsQuery = "select pid from Processes;"
@@ -93,6 +101,9 @@ class Database:
                 deleteProcessMetricsEntryQuery = "delete from ProcessMetrics where pid={id};".format(id=pid)
                 self.cursor.execute(deleteProcessMetricsEntryQuery)
 
+    '''
+    This is the method that should be called to prune all the data at once every 12 hours.
+    '''
     def pruneData(self):
         self.pruneSystemMetrics()
         self.pruneProcessMetrics()
