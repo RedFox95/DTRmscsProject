@@ -1,5 +1,6 @@
 import sqlite3
 import time 
+import logging
 
 class Database:
     def __init__(self, dbName) -> None:
@@ -41,15 +42,66 @@ class Database:
         self.cursor.execute(insertMetricsQuery)
 
     def pruneSystemMetrics(self):
-        pass
+        logging.debug("-> pruneSystemMetrics")
+        # get the oldest timestamp 
+        oldestTimeQuery = "select min(timestamp) from SystemMetrics;"
+        self.cursor.execute(oldestTimeQuery)
+        # NTS: need to index into it twice since it is returned in this form: [(1.23,)]
+        oldestTimestamp = self.cursor.fetchall()[0][0]
+
+        # get the newest timestamp 
+        newestTimeQuery = "select max(timestamp) from SystemMetrics;"
+        self.cursor.execute(newestTimeQuery)
+        newestTimestamp = self.cursor.fetchall()[0][0]
+
+        # get all the info between, each in a separate result
+        getAllCpuData = "select cpuUsage from SystemMetrics where timestamp>={old} and timestamp<={new};".format(old=oldestTimestamp, new=newestTimestamp)
+        self.cursor.execute(getAllCpuData)
+        allCpuData = self.cursor.fetchall()
+
+        getAllMemoryData = "select memoryUsage from SystemMetrics where timestamp>={old} and timestamp<={new};".format(old=oldestTimestamp, new=newestTimestamp)
+        self.cursor.execute(getAllMemoryData)
+        allMemoryData = self.cursor.fetchall()
+
+        getAllDiskData = "select diskUsage from SystemMetrics where timestamp>={old} and timestamp<={new};".format(old=oldestTimestamp, new=newestTimestamp)
+        self.cursor.execute(getAllDiskData)
+        allDiskData = self.cursor.fetchall()
+
+        # remove from SystemMetrics database
+        deleteQuery = "delete from SystemMetrics where timestamp>={old} and timestamp<={new};".format(old=oldestTimestamp, new=newestTimestamp)
+        self.cursor.execute(deleteQuery)
+
+        # convert to averages 
+        cpuAvg = getAverageData(allCpuData)
+        memoryAvg = getAverageData(allMemoryData)
+        diskAvg = getAverageData(diskAvg)
+
+        # add to PrunedSystemMetrics datasebase
+        addPrunedQuery = "insert into PrunedSystemMetrics values ({start}, {end}, {cpu}, {memory}, {disk});".format(start=oldestTimestamp, end=newestTimestamp, cpu=cpuAvg, memory=memoryAvg, disk=diskAvg)
+        self.cursor.execute(addPrunedQuery)
 
     def pruneProcessMetrics(self):
-        pass
+        # get all pids from processes table
+        allPidsQuery = "select pid from Processes;"
+        self.cursor.execute(allPidsQuery)
+        allPids = self.cursor.fetchall()
 
-    def pruneData():
-        # TODO prune data starting from the current time and back x hours?
-        # does this happen at the same time for both? could call both other methods from here
-        pass
+        # for each process, check the latest timestamp in the ProcessMetrics table 
+        for pidTuple in allPids:
+            pid = pidTuple[0]
+            latestTimestampQuery = "select max(timestamp) from ProcessMetrics where pid={id};".format(id=pid)
+            self.cursor.execute(latestTimestampQuery)
+            latestTimestamp = self.cursor.fetchall()[0][0]
+            # if last timestamp >= 1 week ago, delete all records in Processes and ProcessMetrics for this process
+            if time.time() - latestTimestamp >= 604800:
+                deleteProcessesEntryQuery = "delete from Processes where pid={id};".format(id=pid)
+                self.cursor.execute(deleteProcessesEntryQuery)
+                deleteProcessMetricsEntryQuery = "delete from ProcessMetrics where pid={id};".format(id=pid)
+                self.cursor.execute(deleteProcessMetricsEntryQuery)
+
+    def pruneData(self):
+        self.pruneSystemMetrics()
+        self.pruneProcessMetrics()
 
     '''
     Returns the cursor for this database. FOR TESTING ONLY. 
@@ -58,5 +110,15 @@ class Database:
     def getCursor(self):
         if "test" in self.databaseName:
             return self.cursor
+        
+'''
+Returns the average of the data. 
+dataList: list of the data to average in the form returned by sql queries (ex: [(a,), (b,), (c,)])
+'''
+def getAverageData(dataList):
+    sum = 0
+    for data in dataList:
+        sum += data[0]
+    return sum / len(dataList)
 
 

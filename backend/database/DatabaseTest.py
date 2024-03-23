@@ -69,6 +69,18 @@ def test_add_process_metrics():
     cursor.execute("select * from ProcessMetrics where pid={id} and cpuUsage={cUsage} and memoryUsage={mUsage};".format(id=pid, cUsage=cpuUsage, mUsage=memoryUsage))
     assert cursor.fetchall() != []
 
-# TODO test adding bad values
-    
-# TODO test prune
+def test_bad_add_system_metrics():
+    # TODO
+    pass 
+
+def test_bad_add_process_metrics():
+    # TODO 
+    pass
+
+def test_prune_system_metrics():
+    # TODO
+    pass
+
+def test_prune_process_metrics():
+    # TODO
+    pass
