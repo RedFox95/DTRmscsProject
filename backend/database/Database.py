@@ -74,7 +74,7 @@ class Database:
         # convert to averages 
         cpuAvg = getAverageData(allCpuData)
         memoryAvg = getAverageData(allMemoryData)
-        diskAvg = getAverageData(diskAvg)
+        diskAvg = getAverageData(allDiskData)
 
         # add to PrunedSystemMetrics datasebase
         addPrunedQuery = "insert into PrunedSystemMetrics values ({start}, {end}, {cpu}, {memory}, {disk});".format(start=oldestTimestamp, end=newestTimestamp, cpu=cpuAvg, memory=memoryAvg, disk=diskAvg)
