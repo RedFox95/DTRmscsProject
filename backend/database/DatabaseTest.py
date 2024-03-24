@@ -70,14 +70,6 @@ def test_add_process_metrics():
     cursor.execute("select * from ProcessMetrics where pid={id} and cpuUsage={cUsage} and memoryUsage={mUsage};".format(id=pid, cUsage=cpuUsage, mUsage=memoryUsage))
     assert cursor.fetchall() != []
 
-def test_bad_add_system_metrics():
-    # TODO
-    pass 
-
-def test_bad_add_process_metrics():
-    # TODO 
-    pass
-
 def test_prune_system_metrics():
     db = Database.Database("testPruneSysMet.db")
     cursor = db.getCursor()
