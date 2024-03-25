@@ -1,181 +1,175 @@
-<!DOCTYPE html>
-<html lang="en" dir="ltr">
-  <head>
-    <meta charset="utf-8">
-    <title>SMA</title>
-    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@4.0.0/dist/css/bootstrap.min.css" integrity="sha384-Gn5384xqQ1aoWXA+058RXPxPg6fy4IWvTNh0E263XmFcJlSAwiGgFAW/dAiS6JXm" crossorigin="anonymous">
-  </head>
-  <body>
-    <div class="headerBar">
-      <h1 id="SMA">SMA</h1>
-      <div class="container">
+{% extends 'base.html' %}
+
+{% block content %}
+<div class="headerBar">
+  <h1 id="SMA">SMA</h1>
+  <div class="container">
+    <div class="row">
+      <div class="col-2">
+        <button type="button" class="btn" name="button">Live View</button>
+      </div>
+      <div class="col-2">
+        <button type="button" class="btn" name="button">Reports</button>
+      </div>
+    </div>
+  </div>
+</div>
+<div class="mainContent">
+  <div class="cpuContainer container">
+    <div class="row">
+      <div class="col-12">
+        <h1>CPU</h1>
+      </div>
+    </div>
+    <div class="row">
+      <div class="col-12">
+        <hr>
         <div class="row">
-          <div class="col-2">
-            <button type="button" class="btn" name="button">Live View</button>
+          <div class="col-3">
+            <h2>Physical Count:</h2>
           </div>
-          <div class="col-2">
-            <button type="button" class="btn" name="button">Reports</button>
+          <div class="col-9">
+            <h3>{{ cpu.physical }}</h3>
+          </div>
+        </div>
+        <div class="row">
+          <div class="col-3">
+            <h2>Logical Count:</h2>
+          </div>
+          <div class="col-9">
+            <h3>{{ cpu.logical }}</h3>
+          </div>
+        </div>
+        <div class="row">
+          <div class="col-3">
+            <h2>Speed:</h2>
+          </div>
+          <div class="col-9">
+            <h3>{{ cpu.speed }} GHz</h3>
+          </div>
+        </div>
+        <div class="row">
+          <div class="col-3">
+            <h2>Up-time:</h2>
+          </div>
+          <div class="col-9">
+            <h3>{{ cpu.uptime }}</h3>
           </div>
         </div>
       </div>
     </div>
-    <div class="mainContent">
-      <div class="cpuContainer container">
-        <div class="row">
-          <div class="col-12">
-            <h1>CPU</h1>
-          </div>
-        </div>
-        <div class="row">
-          <div class="col-12">
-            <hr>
-            <div class="row">
-              <div class="col-3">
-                <h2>Physical Count:</h2>
-              </div>
-              <div class="col-9">
-                <h3>{{ cpu.physical }}</h3>
-              </div>
-            </div>
-            <div class="row">
-              <div class="col-3">
-                <h2>Logical Count:</h2>
-              </div>
-              <div class="col-9">
-                <h3>{{ cpu.logical }}</h3>
-              </div>
-            </div>
-            <div class="row">
-              <div class="col-3">
-                <h2>Speed:</h2>
-              </div>
-              <div class="col-9">
-                <h3>{{ cpu.speed }} GHz</h3>
-              </div>
-            </div>
-            <div class="row">
-              <div class="col-3">
-                <h2>Up-time:</h2>
-              </div>
-              <div class="col-9">
-                <h3>{{ cpu.uptime }}</h3>
-              </div>
-            </div>
-          </div>
-        </div>
-      </div>
+  </div>
 
-      <div class="memContainer container">
-        <div class="row">
-          <div class="col-12">
-            <h1>Memory</h1>
-          </div>
-        </div>
-        <hr>
-        <div class="row">
-          <div class="col-3">
-            <h2>Available:</h2>
-          </div>
-          <div class="col-9">
-            <h3>{{ memory.total }}GB</h3>
-          </div>
-        </div>
-        <div class="row">
-          <div class="col-3">
-            <h2>Used:</h2>
-          </div>
-          <div class="col-9">
-            <h3>{{ memory.used }}GB</h3>
-          </div>
-        </div>
-        <div class="row">
-          <div class="col-3">
-            <h2>Percent:</h2>
-          </div>
-          <div class="col-9">
-            <h3>{{ memory.percent }}%</h3>
-          </div>
-        </div>
-      </div>
-
-      <div class="diskContainer container">
-        <div class="row">
-          <div class="col-12">
-            <h1>Disk</h1>
-          </div>
-        </div>
-        <hr>
-        <div class="row">
-          <div class="col-3">
-            <h2>Available Disks:</h2>
-          </div>
-          <div class="col-9">
-            <h3>Disk 0, Disk 1</h3>
-          </div>
-        </div>
-        <div class="row">
-          <div class="col-3">
-            <h2>Capacity:</h2>
-          </div>
-          <div class="col-9">
-            <h3>3.84 TB</h3>
-          </div>
-        </div>
-        <div class="row">
-          <div class="col-3">
-            <h2>Usage:</h2>
-          </div>
-          <div class="col-9">
-            <h3>1.29 TB</h3>
-          </div>
-        </div>
-      </div>
-
-      <div class="processContainer container">
-        <div class="row">
-          <div class="col-12">
-            <h1>Process</h1>
-          </div>
-        </div>
-        <div class="row">
-          <div class="col-12">
-            <table class="table">
-              <thead>
-                <tr>
-                  <th scope="col">PID</th>
-                  <th scope="col">User</th>
-                  <th scope="col">CPU</th>
-                  <th scope="col">Memory</th>
-                  <th scope="col">Disk</th>
-                </tr>
-              </thead>
-              <tbody>
-                <tr>
-                  <td>1</td>
-                  <td>ROOT</td>
-                  <td>34%</td>
-                  <td>58 MB</td>
-                  <td>0%</td>
-                </tr>
-                <tr>
-                  <td>2</td>
-                  <td>ROOT</td>
-                  <td>11%</td>
-                  <td>2.3 GB</td>
-                  <td>2%</td>
-                </tr>
-                <tr>
-                  <td>3</td>
-                  <td>ROOT</td>
-                  <td>28%</td>
-                  <td>11 MB</td>
-                  <td>0%</td>
-                </tr>
-              </tbody>
-            </table>
-          </div>
-        </div>
+  <div class="memContainer container">
+    <div class="row">
+      <div class="col-12">
+        <h1>Memory</h1>
       </div>
     </div>
-  </body>
-</html>
+    <hr>
+    <div class="row">
+      <div class="col-3">
+        <h2>Available:</h2>
+      </div>
+      <div class="col-9">
+        <h3>{{ memory.total }}GB</h3>
+      </div>
+    </div>
+    <div class="row">
+      <div class="col-3">
+        <h2>Used:</h2>
+      </div>
+      <div class="col-9">
+        <h3>{{ memory.used }}GB</h3>
+      </div>
+    </div>
+    <div class="row">
+      <div class="col-3">
+        <h2>Percent:</h2>
+      </div>
+      <div class="col-9">
+        <h3>{{ memory.percent }}%</h3>
+      </div>
+    </div>
+  </div>
+
+  <div class="diskContainer container">
+    <div class="row">
+      <div class="col-12">
+        <h1>Disk</h1>
+      </div>
+    </div>
+    <hr>
+    <div class="row">
+      <div class="col-3">
+        <h2>Available Disks:</h2>
+      </div>
+      <div class="col-9">
+        <h3>Disk 0, Disk 1</h3>
+      </div>
+    </div>
+    <div class="row">
+      <div class="col-3">
+        <h2>Capacity:</h2>
+      </div>
+      <div class="col-9">
+        <h3>3.84 TB</h3>
+      </div>
+    </div>
+    <div class="row">
+      <div class="col-3">
+        <h2>Usage:</h2>
+      </div>
+      <div class="col-9">
+        <h3>1.29 TB</h3>
+      </div>
+    </div>
+  </div>
+
+  <div class="processContainer container">
+    <div class="row">
+      <div class="col-12">
+        <h1>Process</h1>
+      </div>
+    </div>
+    <div class="row">
+      <div class="col-12">
+        <table class="table">
+          <thead>
+            <tr>
+              <th scope="col">PID</th>
+              <th scope="col">User</th>
+              <th scope="col">CPU</th>
+              <th scope="col">Memory</th>
+              <th scope="col">Disk</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td>1</td>
+              <td>ROOT</td>
+              <td>34%</td>
+              <td>58 MB</td>
+              <td>0%</td>
+            </tr>
+            <tr>
+              <td>2</td>
+              <td>ROOT</td>
+              <td>11%</td>
+              <td>2.3 GB</td>
+              <td>2%</td>
+            </tr>
+            <tr>
+              <td>3</td>
+              <td>ROOT</td>
+              <td>28%</td>
+              <td>11 MB</td>
+              <td>0%</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %}
