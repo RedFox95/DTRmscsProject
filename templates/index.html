@@ -94,18 +94,10 @@
   </div>
 
   <div class="diskContainer container">
+    {% for disk in disks%}
     <div class="row">
       <div class="col-12">
-        <h1>Disk</h1>
-      </div>
-    </div>
-    <hr>
-    <div class="row">
-      <div class="col-3">
-        <h2>Available Disks:</h2>
-      </div>
-      <div class="col-9">
-        <h3>Disk 0, Disk 1</h3>
+        <h1>Disk: {{ disk.mountpoint}}</h1>
       </div>
     </div>
     <div class="row">
@@ -113,17 +105,27 @@
         <h2>Capacity:</h2>
       </div>
       <div class="col-9">
-        <h3>3.84 TB</h3>
+        <h3>{{ disk.total }}GB</h3>
       </div>
     </div>
     <div class="row">
       <div class="col-3">
-        <h2>Usage:</h2>
+        <h2>Used:</h2>
       </div>
       <div class="col-9">
-        <h3>1.29 TB</h3>
+        <h3>{{ disk.used }}GB</h3>
       </div>
     </div>
+    <div class="row">
+      <div class="col-3">
+        <h2>Percent:</h2>
+      </div>
+      <div class="col-9">
+        <h3>{{ disk.percent }}%</h3>
+      </div>
+    </div>
+    <hr>
+    {% endfor %}
   </div>
 
   <div class="processContainer container">

@@ -57,8 +57,8 @@ def get_disk_info():
         disks.append({
             'device': partition.device,
             'mountpoint': partition.mountpoint,
-            'total': usage.total / (1024 ** 3),  # Convert to GB
-            'used': usage.used / (1024 ** 3),  # Convert to GB
+            'total': round(usage.total / (1024 ** 3), 2),  # Convert to GB
+            'used': round(usage.used / (1024 ** 3), 2),  # Convert to GB
             'percent': usage.percent
         })
     return disks
@@ -80,6 +80,7 @@ def home():
     return render_template('index.html',
                             cpu=get_cpu_info(),
                             memory=get_memory_info(),
+                            disks=get_disk_info(),
                             )
 
 
