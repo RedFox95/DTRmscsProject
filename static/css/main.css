@@ -1,0 +1,35 @@
+body {
+  background: #121212;
+  color: #fff;
+}
+
+hr {
+  background: #fff;
+}
+
+#SMA {
+  color: #b31b1b;
+  position: fixed;
+  top: 0px;
+  font-weight: bold;
+}
+
+.btn {
+  background: #b31b1b;
+  color: #fff;
+}
+
+.headerBar {
+  background: #fff;
+  padding: 8px;
+}
+
+.mainContent > .container {
+  background: #232323;
+  margin-top: 32px;
+  border-radius: 8px;
+}
+
+.cpuContainer {
+
+}
