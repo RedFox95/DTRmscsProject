@@ -3,7 +3,8 @@ import time
 import psutil
 import threading
 import json
-from datetime import timedelta
+#from datetime import timedelta
+import datetime
 from flask import Flask, render_template, jsonify, Response
 
 app = Flask(__name__)
@@ -30,8 +31,7 @@ def get_cpu_info():
     boot_time = psutil.boot_time()
     current_time = time.time()
     uptime_seconds = current_time - boot_time
-    # Format the uptime into a more readable format, e.g., "2 days, 4:52:15"
-    uptime = str(timedelta(seconds=uptime_seconds))
+    uptime = format_cpu_time(uptime_seconds)
 
     cpu_data = {
         'speed': freq.current,  # Round to 2 decimal places for GB
@@ -153,6 +153,24 @@ def api_system_metrics():
         'process_info': process_info
     }
     return jsonify(response_data)
+
+def format_cpu_time(t):
+    td = datetime.timedelta(seconds=t)
+    days, remainder = divmod(td.total_seconds(), 86400) # 86400 seconds in a day
+    hours, remainder = divmod(remainder, 3600) # 3600 minutes in a day
+    minutes, seconds = divmod(remainder, 60)
+
+    cpu_time = ""
+    if days > 0:
+        cpu_time += f"{round(days)} day(s), "
+    if hours > 0:
+        cpu_time += f"{round(hours)} hour(s), "
+    if minutes > 0:
+        cpu_time += f"{round(minutes)} minute(s), "
+    if seconds > 0:
+        cpu_time += f"{round(seconds)} second(s)"
+
+    return cpu_time
 
 if __name__ == '__main__':
     # Start the scheduler thread
