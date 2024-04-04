@@ -48,24 +48,6 @@
     </div>
   </div>
 
-  <script>
-    const cpuPhysical = document.getElementById('cpuPhysical');
-    const cpuLogical = document.getElementById('cpuLogical');
-    const cpuSpeed = document.getElementById('cpuSpeed');
-    const cpuUptime = document.getElementById('cpuUptime');
-
-    const cpuStream = new EventSource('/cpu-stream');
-
-    cpuStream.onmessage = function(event) {
-      cpuData = JSON.parse(event.data);
-
-      cpuPhysical.innerText = cpuData.physical;
-      cpuLogical.innerText = cpuData.logical;
-      cpuSpeed.innerText = cpuData.speed;
-      cpuUptime.innerText = cpuData.uptime;
-    };
-  </script>
-
   <div class="memContainer container">
     <div class="row">
       <div class="col-12">
@@ -180,4 +162,22 @@
     </div>
   </div>
 </div>
+
+<script>
+  const cpuPhysical = document.getElementById('cpuPhysical');
+  const cpuLogical = document.getElementById('cpuLogical');
+  const cpuSpeed = document.getElementById('cpuSpeed');
+  const cpuUptime = document.getElementById('cpuUptime');
+
+  const cpuStream = new EventSource('/cpu-stream');
+
+  cpuStream.onmessage = function(event) {
+    cpuData = JSON.parse(event.data);
+
+    cpuPhysical.innerText = cpuData.physical;
+    cpuLogical.innerText = cpuData.logical;
+    cpuSpeed.innerText = cpuData.speed;
+    cpuUptime.innerText = cpuData.uptime;
+  };
+</script>
 {% endblock %}
