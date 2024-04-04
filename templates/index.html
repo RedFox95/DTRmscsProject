@@ -81,39 +81,7 @@
     </div>
   </div>
 
-  <div class="diskContainer container">
-    {% for disk in disks%}
-    <div class="row">
-      <div class="col-12">
-        <h1>Disk: {{ disk.mountpoint}}</h1>
-      </div>
-    </div>
-    <div class="row">
-      <div class="col-3">
-        <h2>Capacity:</h2>
-      </div>
-      <div class="col-9">
-        <h3>{{ disk.total }}GB</h3>
-      </div>
-    </div>
-    <div class="row">
-      <div class="col-3">
-        <h2>Used:</h2>
-      </div>
-      <div class="col-9">
-        <h3>{{ disk.used }}GB</h3>
-      </div>
-    </div>
-    <div class="row">
-      <div class="col-3">
-        <h2>Percent:</h2>
-      </div>
-      <div class="col-9">
-        <h3>{{ disk.percent }}%</h3>
-      </div>
-    </div>
-    <hr>
-    {% endfor %}
+  <div id="diskWrapper" class="diskContainer container">
   </div>
 
   <div class="processContainer container">
@@ -190,6 +158,20 @@
     memTotal.innerText = memData.total;
     memUsed.innerText = memData.used;
     memPercent.innerText = memData.percent;
+  };
+
+  const diskStream = new EventSource('/disk-stream');
+  diskStream.onmessage = function(event) {
+    let diskContainer = document.getElementById("diskWrapper");
+    diskContainer.innerHTML = "";
+
+    diskData = JSON.parse(event.data);
+    diskData.forEach((disk) => {
+      diskContainer.innerHTML += '<div class="row"><div class="col-12"><h1>Disk:' + disk.mountpoint + '</h1></div></div>' +
+      '<div class="row"><div class="col-3"><h2>Capacity:</h2></div><div class="col-9"><h3>' + disk.total + ' GB</h3></div></div>' +
+      '<div class="row"><div class="col-3"><h2>Used:</h2></div><div class="col-9"><h3>' + disk.used + ' GB</h3></div></div>' +
+      '<div class="row"><div class="col-3"><h2>Percent:</h2></div><div class="col-9"><h3>' + disk.percent + ' %</h3></div></div><hr>';
+    });
   };
 </script>
 {% endblock %}

@@ -96,7 +96,7 @@ def cpu_stream():
     def generate():
         while True:
             yield 'data: {}\n\n'.format(json.dumps(get_cpu_info()))
-            time.sleep(wait_interval)  # wait for 1 second before sending the next update
+            time.sleep(wait_interval)
 
     return Response(generate(), mimetype="text/event-stream")
 
@@ -105,7 +105,16 @@ def mem_stream():
     def generate():
         while True:
             yield 'data: {}\n\n'.format(json.dumps(get_memory_info()))
-            time.sleep(wait_interval)  # wait for 1 second before sending the next update
+            time.sleep(wait_interval)
+
+    return Response(generate(), mimetype="text/event-stream")
+
+@app.route('/disk-stream')
+def disk_stream():
+    def generate():
+        while True:
+            yield 'data: {}\n\n'.format(json.dumps(get_disk_info()))
+            time.sleep(wait_interval)
 
     return Response(generate(), mimetype="text/event-stream")
 
