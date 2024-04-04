@@ -2,10 +2,13 @@ import sched
 import time
 import psutil
 import threading
+import json
 from datetime import timedelta
-from flask import Flask, render_template, jsonify
+from flask import Flask, render_template, jsonify, Response
 
 app = Flask(__name__)
+
+wait_interval = 1
 
 # Function to collect and print metrics
 def collect_metrics():
@@ -14,12 +17,12 @@ def collect_metrics():
 # Function to be scheduled
 def scheduled_task(sc):
     collect_metrics()  # Call the metric collection function
-    sc.enter(30, 1, scheduled_task, (sc,))  # Schedule the next call
+    sc.enter(wait_interval, 1, scheduled_task, (sc,))  # Schedule the next call
 
 # Start the scheduler in a separate thread
 def start_scheduler():
     scheduler = sched.scheduler(time.time, time.sleep)
-    scheduler.enter(30, 1, scheduled_task, (scheduler,))
+    scheduler.enter(wait_interval, 1, scheduled_task, (scheduler,))
     scheduler.run()
 
 def get_cpu_info():
@@ -30,12 +33,14 @@ def get_cpu_info():
     # Format the uptime into a more readable format, e.g., "2 days, 4:52:15"
     uptime = str(timedelta(seconds=uptime_seconds))
 
-    return {
+    cpu_data = {
         'speed': freq.current,  # Round to 2 decimal places for GB
         'uptime': uptime,
         'logical': psutil.cpu_count(),
         'physical': psutil.cpu_count(logical=False)
     }
+
+    return cpu_data
 
 def get_memory_info():
     memory = psutil.virtual_memory()
@@ -85,6 +90,15 @@ def reports():
     # This route renders the HTML template for the report view.
     return render_template('report.html'
                             )
+
+@app.route('/cpu-stream')
+def cpu_stream():
+    def generate():
+        while True:
+            yield 'data: {}\n\n'.format(json.dumps(get_cpu_info()))
+            time.sleep(wait_interval)  # wait for 1 second before sending the next update
+
+    return Response(generate(), mimetype="text/event-stream")
 
 @app.route('/cpu_usage')
 def cpu_usage():

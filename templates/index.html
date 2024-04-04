@@ -17,7 +17,7 @@
             <h2>Physical Count:</h2>
           </div>
           <div class="col-9">
-            <h3>{{ cpu.physical }}</h3>
+            <h3 id="cpuPhysical">{{ cpu.physical }}</h3>
           </div>
         </div>
         <div class="row">
@@ -25,7 +25,7 @@
             <h2>Logical Count:</h2>
           </div>
           <div class="col-9">
-            <h3>{{ cpu.logical }}</h3>
+            <h3 id="cpuLogical">{{ cpu.logical }}</h3>
           </div>
         </div>
         <div class="row">
@@ -33,7 +33,7 @@
             <h2>Speed:</h2>
           </div>
           <div class="col-9">
-            <h3>{{ cpu.speed }} GHz</h3>
+            <h3 id="cpuSpeed">{{ cpu.speed }} GHz</h3>
           </div>
         </div>
         <div class="row">
@@ -41,12 +41,30 @@
             <h2>Up-time:</h2>
           </div>
           <div class="col-9">
-            <h3>{{ cpu.uptime }}</h3>
+            <h3 id="cpuUptime">{{ cpu.uptime }}</h3>
           </div>
         </div>
       </div>
     </div>
   </div>
+
+  <script>
+    const cpuPhysical = document.getElementById('cpuPhysical');
+    const cpuLogical = document.getElementById('cpuLogical');
+    const cpuSpeed = document.getElementById('cpuSpeed');
+    const cpuUptime = document.getElementById('cpuUptime');
+
+    const cpuStream = new EventSource('/cpu-stream');
+
+    cpuStream.onmessage = function(event) {
+      cpuData = JSON.parse(event.data);
+
+      cpuPhysical.innerText = cpuData.physical;
+      cpuLogical.innerText = cpuData.logical;
+      cpuSpeed.innerText = cpuData.speed;
+      cpuUptime.innerText = cpuData.uptime;
+    };
+  </script>
 
   <div class="memContainer container">
     <div class="row">
