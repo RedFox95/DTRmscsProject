@@ -80,6 +80,11 @@ def home():
     # This route renders the HTML template for the dashboard.
     return render_template('index.html')
 
+@app.route('/login')
+def login():
+    # This route renders the HTML template for the dashboard.
+    return render_template('login.html')
+
 @app.route('/reports')
 def reports():
     # This route renders the HTML template for the report view.

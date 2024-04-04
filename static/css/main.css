@@ -36,7 +36,7 @@ hr {
   color: inherit;
 }
 
-.mainContent > .container {
+.mainContent > .card {
   background: #232323;
   margin-top: 32px;
   border-radius: 8px;
@@ -45,4 +45,17 @@ hr {
 
 table#processTable.table th, table#processTable.table td {
   background-color: rgba(0, 0, 0, 0);
+}
+
+.login-card {
+  margin-top: 40%;
+}
+
+form#loginForm {
+  margin: 16px;
+}
+
+form#loginForm button {
+  margin: 16px 0px 0px 0px;
+  width: 100%;
 }
