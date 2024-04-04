@@ -17,7 +17,7 @@
             <h2>Physical Count:</h2>
           </div>
           <div class="col-9">
-            <h3 id="cpuPhysical">{{ cpu.physical }}</h3>
+            <h3><span id="cpuPhysical">{{ cpu.physical }}</span></h3>
           </div>
         </div>
         <div class="row">
@@ -25,7 +25,7 @@
             <h2>Logical Count:</h2>
           </div>
           <div class="col-9">
-            <h3 id="cpuLogical">{{ cpu.logical }}</h3>
+            <h3><span id="cpuLogical">{{ cpu.logical }}</span></h3>
           </div>
         </div>
         <div class="row">
@@ -33,7 +33,7 @@
             <h2>Speed:</h2>
           </div>
           <div class="col-9">
-            <h3 id="cpuSpeed">{{ cpu.speed }} GHz</h3>
+            <h3><span id="cpuSpeed">{{ cpu.speed }}</span><span> GHz</span></h3>
           </div>
         </div>
         <div class="row">
@@ -41,7 +41,7 @@
             <h2>Up-time:</h2>
           </div>
           <div class="col-9">
-            <h3 id="cpuUptime">{{ cpu.uptime }}</h3>
+            <h3><span id="cpuUptime">{{ cpu.uptime }}</span></h3>
           </div>
         </div>
       </div>
@@ -60,7 +60,7 @@
         <h2>Available:</h2>
       </div>
       <div class="col-9">
-        <h3>{{ memory.total }}GB</h3>
+        <h3><span id="memTotal">{{ memory.total }}</span><span> GB</span></h3>
       </div>
     </div>
     <div class="row">
@@ -68,7 +68,7 @@
         <h2>Used:</h2>
       </div>
       <div class="col-9">
-        <h3>{{ memory.used }}GB</h3>
+        <h3><span id="memUsed">{{ memory.used }}</span><span> GB</span></h3>
       </div>
     </div>
     <div class="row">
@@ -76,7 +76,7 @@
         <h2>Percent:</h2>
       </div>
       <div class="col-9">
-        <h3>{{ memory.percent }}%</h3>
+        <h3><span id="memPercent">{{ memory.percent }}</span><span> %</span></h3>
       </div>
     </div>
   </div>
@@ -170,7 +170,6 @@
   const cpuUptime = document.getElementById('cpuUptime');
 
   const cpuStream = new EventSource('/cpu-stream');
-
   cpuStream.onmessage = function(event) {
     cpuData = JSON.parse(event.data);
 
@@ -178,6 +177,19 @@
     cpuLogical.innerText = cpuData.logical;
     cpuSpeed.innerText = cpuData.speed;
     cpuUptime.innerText = cpuData.uptime;
+  };
+
+  const memTotal = document.getElementById('memTotal');
+  const memUsed = document.getElementById('memUsed');
+  const memPercent = document.getElementById('memPercent');
+
+  const memStream = new EventSource('/mem-stream');
+  memStream.onmessage = function(event) {
+    memData = JSON.parse(event.data);
+
+    memTotal.innerText = memData.total;
+    memUsed.innerText = memData.used;
+    memPercent.innerText = memData.percent;
   };
 </script>
 {% endblock %}

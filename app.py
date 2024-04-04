@@ -100,6 +100,15 @@ def cpu_stream():
 
     return Response(generate(), mimetype="text/event-stream")
 
+@app.route('/mem-stream')
+def mem_stream():
+    def generate():
+        while True:
+            yield 'data: {}\n\n'.format(json.dumps(get_memory_info()))
+            time.sleep(wait_interval)  # wait for 1 second before sending the next update
+
+    return Response(generate(), mimetype="text/event-stream")
+
 @app.route('/cpu_usage')
 def cpu_usage():
     cpu_usage_data = {
