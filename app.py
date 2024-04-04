@@ -79,11 +79,7 @@ def get_process_info():
 @app.route('/')
 def home():
     # This route renders the HTML template for the dashboard.
-    return render_template('index.html',
-                            cpu=get_cpu_info(),
-                            memory=get_memory_info(),
-                            disks=get_disk_info(),
-                            )
+    return render_template('index.html')
 
 @app.route('/reports')
 def reports():

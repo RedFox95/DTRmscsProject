@@ -17,7 +17,7 @@
             <h2>Physical Count:</h2>
           </div>
           <div class="col-9">
-            <h3><span id="cpuPhysical">{{ cpu.physical }}</span></h3>
+            <h3><span id="cpuPhysical"></span></h3>
           </div>
         </div>
         <div class="row">
@@ -25,7 +25,7 @@
             <h2>Logical Count:</h2>
           </div>
           <div class="col-9">
-            <h3><span id="cpuLogical">{{ cpu.logical }}</span></h3>
+            <h3><span id="cpuLogical"></span></h3>
           </div>
         </div>
         <div class="row">
@@ -33,7 +33,7 @@
             <h2>Speed:</h2>
           </div>
           <div class="col-9">
-            <h3><span id="cpuSpeed">{{ cpu.speed }}</span><span> GHz</span></h3>
+            <h3><span id="cpuSpeed"></span><span> GHz</span></h3>
           </div>
         </div>
         <div class="row">
@@ -41,7 +41,7 @@
             <h2>Up-time:</h2>
           </div>
           <div class="col-9">
-            <h3><span id="cpuUptime">{{ cpu.uptime }}</span></h3>
+            <h3><span id="cpuUptime"></span></h3>
           </div>
         </div>
       </div>
@@ -60,7 +60,7 @@
         <h2>Available:</h2>
       </div>
       <div class="col-9">
-        <h3><span id="memTotal">{{ memory.total }}</span><span> GB</span></h3>
+        <h3><span id="memTotal"></span><span> GB</span></h3>
       </div>
     </div>
     <div class="row">
@@ -68,7 +68,7 @@
         <h2>Used:</h2>
       </div>
       <div class="col-9">
-        <h3><span id="memUsed">{{ memory.used }}</span><span> GB</span></h3>
+        <h3><span id="memUsed"></span><span> GB</span></h3>
       </div>
     </div>
     <div class="row">
@@ -76,7 +76,7 @@
         <h2>Percent:</h2>
       </div>
       <div class="col-9">
-        <h3><span id="memPercent">{{ memory.percent }}</span><span> %</span></h3>
+        <h3><span id="memPercent"></span><span> %</span></h3>
       </div>
     </div>
   </div>
@@ -167,7 +167,7 @@
 
     diskData = JSON.parse(event.data);
     diskData.forEach((disk) => {
-      diskContainer.innerHTML += '<div class="row"><div class="col-12"><h1>Disk:' + disk.mountpoint + '</h1></div></div>' +
+      diskContainer.innerHTML += '<div class="row"><div class="col-12"><h1>Disk: ' + disk.mountpoint + '</h1></div></div>' +
       '<div class="row"><div class="col-3"><h2>Capacity:</h2></div><div class="col-9"><h3>' + disk.total + ' GB</h3></div></div>' +
       '<div class="row"><div class="col-3"><h2>Used:</h2></div><div class="col-9"><h3>' + disk.used + ' GB</h3></div></div>' +
       '<div class="row"><div class="col-3"><h2>Percent:</h2></div><div class="col-9"><h3>' + disk.percent + ' %</h3></div></div><hr>';
