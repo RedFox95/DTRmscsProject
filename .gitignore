@@ -15,3 +15,6 @@ ENV/
 *.swp
 *.swo
 .DS_Store
+
+# test database files
+test*.db
