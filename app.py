@@ -1,15 +1,14 @@
-import sched
-import time
+from flask import Flask, render_template, jsonify, Response
+from datetime import timedelta
 import psutil
 import threading
+import time
 import json
-#from datetime import timedelta
-import datetime
-from flask import Flask, render_template, jsonify, Response
+import sched
 
 app = Flask(__name__)
 
-wait_interval = 1
+wait_interval = 30
 
 # Function to collect and print metrics
 def collect_metrics():
@@ -155,7 +154,7 @@ def api_system_metrics():
     return jsonify(response_data)
 
 def format_cpu_time(t):
-    td = datetime.timedelta(seconds=t)
+    td = timedelta(seconds=t)
     days, remainder = divmod(td.total_seconds(), 86400) # 86400 seconds in a day
     hours, remainder = divmod(remainder, 3600) # 3600 minutes in a day
     minutes, seconds = divmod(remainder, 60)
