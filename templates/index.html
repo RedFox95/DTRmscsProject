@@ -1,19 +1,7 @@
 {% extends 'base.html' %}
 
 {% block content %}
-<div class="headerBar">
-  <h1 id="SMA">SMA</h1>
-  <div class="container">
-    <div class="row">
-      <div class="col-2">
-        <button type="button" class="btn" name="button">Live View</button>
-      </div>
-      <div class="col-2">
-        <button type="button" class="btn" name="button">Reports</button>
-      </div>
-    </div>
-  </div>
-</div>
+{% include 'navigation.html' %}
 <div class="mainContent">
   <div class="cpuContainer container">
     <div class="row">

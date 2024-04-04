@@ -9,14 +9,20 @@ hr {
 
 #SMA {
   color: #b31b1b;
-  position: fixed;
   top: 0px;
   font-weight: bold;
 }
 
 .btn {
-  background: #b31b1b;
+  background-color: #b31b1b;
+  border: 2px solid #b31b1b;
   color: #fff;
+}
+
+.btn:hover {
+  background-color: rgba(0,0,0,0);
+  border: 2px solid #b31b1b;
+  color: #b31b1b;
 }
 
 .headerBar {
@@ -24,10 +30,17 @@ hr {
   padding: 8px;
 }
 
+.headerBar h1 a {
+  position: absolute;
+  text-decoration: none;
+  color: inherit;
+}
+
 .mainContent > .container {
   background: #232323;
   margin-top: 32px;
   border-radius: 8px;
+  padding: 8px;
 }
 
 .cpuContainer {

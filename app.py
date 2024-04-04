@@ -10,7 +10,6 @@ app = Flask(__name__)
 # Function to collect and print metrics
 def collect_metrics():
     print("Collecting system metrics...")
-    # Your existing metrics collection logic
 
 # Function to be scheduled
 def scheduled_task(sc):
@@ -72,8 +71,6 @@ def get_process_info():
             pass
     return processes
 
-
-
 @app.route('/')
 def home():
     # This route renders the HTML template for the dashboard.
@@ -83,6 +80,11 @@ def home():
                             disks=get_disk_info(),
                             )
 
+@app.route('/reports')
+def reports():
+    # This route renders the HTML template for the report view.
+    return render_template('report.html'
+                            )
 
 @app.route('/cpu_usage')
 def cpu_usage():
@@ -115,10 +117,6 @@ def api_system_metrics():
         'process_info': process_info
     }
     return jsonify(response_data)
-
-
-
-
 
 if __name__ == '__main__':
     # Start the scheduler thread
