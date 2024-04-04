@@ -92,39 +92,18 @@
     </div>
     <div class="row">
       <div class="col-12">
-        <table class="table">
+        <table id="processTable" class="table">
           <thead>
             <tr>
               <th scope="col">PID</th>
-              <th scope="col">User</th>
-              <th scope="col">CPU</th>
-              <th scope="col">Memory</th>
-              <th scope="col">Disk</th>
+              <th scope="col">Name</th>
+              <th scope="col">Memory %</th>
+              <th scope="col">CPU %</th>
+              <th scope="col">CPU Time</th>
+              <th scope="col">Created Time</th>
             </tr>
           </thead>
-          <tbody>
-            <tr>
-              <td>1</td>
-              <td>ROOT</td>
-              <td>34%</td>
-              <td>58 MB</td>
-              <td>0%</td>
-            </tr>
-            <tr>
-              <td>2</td>
-              <td>ROOT</td>
-              <td>11%</td>
-              <td>2.3 GB</td>
-              <td>2%</td>
-            </tr>
-            <tr>
-              <td>3</td>
-              <td>ROOT</td>
-              <td>28%</td>
-              <td>11 MB</td>
-              <td>0%</td>
-            </tr>
-          </tbody>
+          <tbody id="processTableBody"></tbody>
         </table>
       </div>
     </div>
@@ -132,6 +111,7 @@
 </div>
 
 <script>
+  // CPU data visualization
   const cpuPhysical = document.getElementById('cpuPhysical');
   const cpuLogical = document.getElementById('cpuLogical');
   const cpuSpeed = document.getElementById('cpuSpeed');
@@ -147,11 +127,12 @@
     cpuUptime.innerText = cpuData.uptime;
   };
 
+  // Memory data visualization
   const memTotal = document.getElementById('memTotal');
   const memUsed = document.getElementById('memUsed');
   const memPercent = document.getElementById('memPercent');
 
-  const memStream = new EventSource('/mem-stream');
+  const memStream = new EventSource('/memory-stream');
   memStream.onmessage = function(event) {
     memData = JSON.parse(event.data);
 
@@ -160,6 +141,7 @@
     memPercent.innerText = memData.percent;
   };
 
+  // Disk data visualization
   const diskStream = new EventSource('/disk-stream');
   diskStream.onmessage = function(event) {
     let diskContainer = document.getElementById("diskWrapper");
@@ -168,9 +150,23 @@
     diskData = JSON.parse(event.data);
     diskData.forEach((disk) => {
       diskContainer.innerHTML += '<div class="row"><div class="col-12"><h1>Disk: ' + disk.mountpoint + '</h1></div></div>' +
-      '<div class="row"><div class="col-3"><h2>Capacity:</h2></div><div class="col-9"><h3>' + disk.total + ' GB</h3></div></div>' +
-      '<div class="row"><div class="col-3"><h2>Used:</h2></div><div class="col-9"><h3>' + disk.used + ' GB</h3></div></div>' +
-      '<div class="row"><div class="col-3"><h2>Percent:</h2></div><div class="col-9"><h3>' + disk.percent + ' %</h3></div></div><hr>';
+          '<div class="row"><div class="col-3"><h2>Capacity:</h2></div><div class="col-9"><h3>' + disk.total + ' GB</h3></div></div>' +
+          '<div class="row"><div class="col-3"><h2>Used:</h2></div><div class="col-9"><h3>' + disk.used + ' GB</h3></div></div>' +
+          '<div class="row"><div class="col-3"><h2>Percent:</h2></div><div class="col-9"><h3>' + disk.percent + ' %</h3></div></div><hr>';
+    });
+  };
+
+  // Process data visualization
+  const processStream = new EventSource('/process-stream');
+  processStream.onmessage = function(event) {
+    let processTable = document.getElementById("processTableBody");
+    processTable.innerHTML = "";
+
+    processData = JSON.parse(event.data);
+    processData.forEach((process) => {
+      processTable.innerHTML += '<tr><td>' + process.name + '</td><td>' + process.pid + '</td><td>' +
+          process.memory_percent + '</td><td>' + process.cpu_percent + '</td><td>' + process.cpu_times +
+          '</td><td>' + process.create_time + '</td></tr>';
     });
   };
 </script>

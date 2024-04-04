@@ -74,7 +74,7 @@ def get_process_info():
             processes.append(process.info)
         except (psutil.NoSuchProcess, psutil.AccessDenied, psutil.ZombieProcess):
             pass
-    return processes
+    return processes[0:10]
 
 @app.route('/')
 def home():
@@ -84,8 +84,7 @@ def home():
 @app.route('/reports')
 def reports():
     # This route renders the HTML template for the report view.
-    return render_template('report.html'
-                            )
+    return render_template('report.html')
 
 @app.route('/cpu-stream')
 def cpu_stream():
@@ -96,7 +95,7 @@ def cpu_stream():
 
     return Response(generate(), mimetype="text/event-stream")
 
-@app.route('/mem-stream')
+@app.route('/memory-stream')
 def mem_stream():
     def generate():
         while True:
@@ -110,6 +109,15 @@ def disk_stream():
     def generate():
         while True:
             yield 'data: {}\n\n'.format(json.dumps(get_disk_info()))
+            time.sleep(wait_interval)
+
+    return Response(generate(), mimetype="text/event-stream")
+
+@app.route('/process-stream')
+def process_stream():
+    def generate():
+        while True:
+            yield 'data: {}\n\n'.format(json.dumps(get_process_info()))
             time.sleep(wait_interval)
 
     return Response(generate(), mimetype="text/event-stream")

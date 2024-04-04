@@ -43,6 +43,6 @@ hr {
   padding: 8px;
 }
 
-.cpuContainer {
-
+table#processTable.table th, table#processTable.table td {
+  background-color: rgba(0, 0, 0, 0);
 }
