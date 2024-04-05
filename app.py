@@ -17,6 +17,7 @@ app = Flask(__name__)
 
 wait_interval = 2
 cpu_chart_buffer = deque([0] * 61, maxlen=61)
+mem_chart_buffer = deque([0] * 61, maxlen=61)
 
 # Function to collect and print metrics
 def collect_metrics():
@@ -58,11 +59,13 @@ def get_memory_info():
     total_memory_gb = memory.total / (1024 ** 3)  # Convert bytes to GB
     used_memory_gb = memory.used / (1024 ** 3)  # Convert bytes to GB
     memory_percent = memory.percent  # Percentage of memory used
+    mem_chart_buffer.append(memory_percent)
 
     return {
         'total': round(total_memory_gb, 2),  # Round to 2 decimal places for GB
         'used': round(used_memory_gb, 2),
-        'percent': memory_percent
+        'percent': memory_percent,
+        'y_values': list(mem_chart_buffer)
     }
 
 def get_disk_info():
@@ -87,12 +90,7 @@ def get_process_info():
             pass
     return processes[0:10]
 
-# @app.before_request
-# def before_request():
-#     return render_template('login.html')
-
-@app.route('/')
-def home():
+def get_cpu_chart():
     x = [i for i in range(61)][::-1]
     y = list(cpu_chart_buffer)
 
@@ -106,10 +104,35 @@ def home():
     curdoc().theme = Theme(filename='./theme/theme.json')
     curdoc().add_root(p)
 
-    script, div = components(p)
+    return components(p)
+
+def get_mem_chart():
+    x = [i for i in range(61)][::-1]
+    y = list(mem_chart_buffer)
+
+    p = figure(name='mem_usage', x_axis_label='Seconds', y_axis_label='%', tools='', x_range=(60, 0),
+                y_range=(0, 100), height=900, width=1600, sizing_mode='stretch_both', y_axis_location='right')
+    p.line(x, y, legend_label="memory usage", line_width=2, line_color='#b31b1b')
+    p.legend.location = 'top_left'
+    p.legend.background_fill_color = "#232323"
+    p.legend.label_text_color = "#a8a8a8"
+    p.toolbar.logo = None
+    curdoc().theme = Theme(filename='./theme/theme.json')
+    curdoc().add_root(p)
+
+    return components(p)
+
+# @app.before_request
+# def before_request():
+#     return render_template('login.html')
+
+@app.route('/')
+def home():
+    cpu_script, cpu_div = get_cpu_chart()
+    mem_script, mem_div = get_mem_chart()
 
     # This route renders the HTML template for the dashboard.
-    return render_template('index.html', script=script, div=div)
+    return render_template('index.html', cpu_script=cpu_script, cpu_div=cpu_div, mem_script=mem_script, mem_div=mem_div)
 
 @app.route('/login', methods=['GET', 'POST'])
 def login():

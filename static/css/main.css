@@ -60,6 +60,6 @@ form#loginForm button {
   width: 100%;
 }
 
-#cpuSpeedChart {
+#cpuSpeedChart, #memSpeedChart {
   height: 250px;
 }
