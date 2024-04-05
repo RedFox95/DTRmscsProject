@@ -1,4 +1,4 @@
-from flask import Flask, render_template, jsonify, Response
+from flask import Flask, render_template, jsonify, Response, request
 from datetime import timedelta
 import psutil
 import threading
@@ -75,13 +75,19 @@ def get_process_info():
             pass
     return processes[0:10]
 
+# @app.before_request
+# def before_request():
+#     return render_template('login.html')
+
 @app.route('/')
 def home():
     # This route renders the HTML template for the dashboard.
     return render_template('index.html')
 
-@app.route('/login')
+@app.route('/login', methods=['Get', 'POST'])
 def login():
+    login_credentials = request.form
+    print(login_credentials)
     # This route renders the HTML template for the dashboard.
     return render_template('login.html')
 
