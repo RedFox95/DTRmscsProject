@@ -93,17 +93,16 @@ def get_process_info():
 
 @app.route('/')
 def home():
-    x = [i for i in range(61)]
-    x = x[::-1]
+    x = [i for i in range(61)][::-1]
+    y = list(cpu_chart_buffer)
 
     p = figure(name='cpu_usage', x_axis_label='Seconds', y_axis_label='%', tools='', x_range=(60, 0),
                 height=900, width=1600, sizing_mode='stretch_both', y_axis_location='right')
-    p.line(x, list(cpu_chart_buffer), legend_label="cpu usage", line_width=2, line_color='#b31b1b')
+    p.line(x, y, legend_label="cpu usage", line_width=2, line_color='#b31b1b')
     p.legend.location = 'top_left'
     p.legend.background_fill_color = "#232323"
     p.legend.label_text_color = "#a8a8a8"
     p.toolbar.logo = None
-
     curdoc().theme = Theme(filename='./theme/theme.json')
     curdoc().add_root(p)
 
@@ -205,13 +204,13 @@ def format_cpu_time(t):
 
     cpu_time = ""
     if days > 0:
-        cpu_time += f"{round(days)} D, "
+        cpu_time += f"{round(days)}D, "
     if hours > 0:
-        cpu_time += f"{round(hours)} H, "
+        cpu_time += f"{round(hours)}H, "
     if minutes > 0:
-        cpu_time += f"{round(minutes)} m, "
+        cpu_time += f"{round(minutes)}m, "
     if seconds > 0:
-        cpu_time += f"{round(seconds)} s"
+        cpu_time += f"{round(seconds)}s"
 
     return cpu_time
 
