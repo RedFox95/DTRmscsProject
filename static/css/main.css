@@ -59,3 +59,7 @@ form#loginForm button {
   margin: 16px 0px 0px 0px;
   width: 100%;
 }
+
+#cpuSpeedChart {
+  height: 200px;
+}

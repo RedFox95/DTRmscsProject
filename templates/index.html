@@ -2,6 +2,7 @@
 
 {% block content %}
 {% include 'navigation.html' %}
+{{ script|safe }}
 <div class="mainContent">
   <div class="cpuContainer container card">
     <div class="row">
@@ -9,23 +10,23 @@
         <h1>CPU</h1>
       </div>
     </div>
+    <hr>
+    <div class="row">
+      <div class="">
+        <div id="cpuSpeedChart">
+          {{ div | safe }}
+        </div>
+      </div>
+    </div>
+    <hr>
     <div class="row">
       <div class="col-12">
-        <hr>
         <div class="row">
           <div class="col-3">
-            <h2>Physical Count:</h2>
+            <h2>Usage:</h2>
           </div>
           <div class="col-9">
-            <h3><span id="cpuPhysical"></span></h3>
-          </div>
-        </div>
-        <div class="row">
-          <div class="col-3">
-            <h2>Logical Count:</h2>
-          </div>
-          <div class="col-9">
-            <h3><span id="cpuLogical"></span></h3>
+            <h3><span id="cpuUsage"></span><span> %</span></h3>
           </div>
         </div>
         <div class="row">
@@ -42,6 +43,22 @@
           </div>
           <div class="col-9">
             <h3><span id="cpuUptime"></span></h3>
+          </div>
+        </div>
+        <div class="row">
+          <div class="col-3">
+            <h2>Physical Count:</h2>
+          </div>
+          <div class="col-9">
+            <h3><span id="cpuPhysical"></span></h3>
+          </div>
+        </div>
+        <div class="row">
+          <div class="col-3">
+            <h2>Logical Count:</h2>
+          </div>
+          <div class="col-9">
+            <h3><span id="cpuLogical"></span></h3>
           </div>
         </div>
       </div>
@@ -112,20 +129,29 @@
 
 <script>
   // CPU data visualization
-  const cpuPhysical = document.getElementById('cpuPhysical');
-  const cpuLogical = document.getElementById('cpuLogical');
-  const cpuSpeed = document.getElementById('cpuSpeed');
-  const cpuUptime = document.getElementById('cpuUptime');
+  window.onload = function() {
+    const cpuPhysical = document.getElementById('cpuPhysical');
+    const cpuLogical = document.getElementById('cpuLogical');
+    const cpuSpeed = document.getElementById('cpuSpeed');
+    const cpuUsage = document.getElementById('cpuUsage');
+    const cpuUptime = document.getElementById('cpuUptime');
 
-  const cpuStream = new EventSource('/cpu-stream');
-  cpuStream.onmessage = function(event) {
-    cpuData = JSON.parse(event.data);
+    const plot = Bokeh.documents[0].get_model_by_name('cpu_usage');
+    const line = plot.renderers[0];
 
-    cpuPhysical.innerText = cpuData.physical;
-    cpuLogical.innerText = cpuData.logical;
-    cpuSpeed.innerText = cpuData.speed;
-    cpuUptime.innerText = cpuData.uptime;
-  };
+    const cpuStream = new EventSource('/cpu-stream');
+    cpuStream.onmessage = function(event) {
+      cpuData = JSON.parse(event.data);
+
+      cpuPhysical.innerText = cpuData.physical;
+      cpuLogical.innerText = cpuData.logical;
+      cpuSpeed.innerText = cpuData.speed;
+      cpuUsage.innerText = cpuData.usage;
+      cpuUptime.innerText = cpuData.uptime;
+      line.data_source.data['y'] = cpuData.y_values;
+      line.data_source.change.emit();
+    };
+  }
 
   // Memory data visualization
   const memTotal = document.getElementById('memTotal');

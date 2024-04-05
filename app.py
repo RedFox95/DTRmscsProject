@@ -1,5 +1,12 @@
 from flask import Flask, render_template, jsonify, Response, request, redirect
 from datetime import timedelta
+from bokeh.plotting import figure
+from bokeh.embed import components
+from bokeh.io import curdoc
+from bokeh.models import ColumnDataSource, CustomJS
+from bokeh.themes import Theme
+from random import randint
+from collections import deque
 import psutil
 import threading
 import time
@@ -8,7 +15,8 @@ import sched
 
 app = Flask(__name__)
 
-wait_interval = 30
+wait_interval = 1
+cpu_chart_buffer = deque([0] * 50, maxlen=50)
 
 # Function to collect and print metrics
 def collect_metrics():
@@ -27,16 +35,20 @@ def start_scheduler():
 
 def get_cpu_info():
     freq = psutil.cpu_freq()
+    usage = psutil.cpu_percent(interval=1)
     boot_time = psutil.boot_time()
     current_time = time.time()
     uptime_seconds = current_time - boot_time
     uptime = format_cpu_time(uptime_seconds)
+    cpu_chart_buffer.append(usage)
 
     cpu_data = {
         'speed': freq.current,  # Round to 2 decimal places for GB
+        'usage': usage,
         'uptime': uptime,
         'logical': psutil.cpu_count(),
-        'physical': psutil.cpu_count(logical=False)
+        'physical': psutil.cpu_count(logical=False),
+        'y_values': list(cpu_chart_buffer)
     }
 
     return cpu_data
@@ -81,8 +93,16 @@ def get_process_info():
 
 @app.route('/')
 def home():
+    x = [i for i in range(50)]
+
+    p = figure(name="cpu_usage", title="CPU Usage", y_axis_label='%', tools="",
+                height=900, width=1600, sizing_mode='stretch_both')
+    p.line(x, list(cpu_chart_buffer), legend_label="Data", line_width=2)
+
+    script, div = components(p)
+
     # This route renders the HTML template for the dashboard.
-    return render_template('index.html')
+    return render_template('index.html', script=script, div=div)
 
 @app.route('/login', methods=['GET', 'POST'])
 def login():
@@ -177,13 +197,13 @@ def format_cpu_time(t):
 
     cpu_time = ""
     if days > 0:
-        cpu_time += f"{round(days)} day(s), "
+        cpu_time += f"{round(days)} D, "
     if hours > 0:
-        cpu_time += f"{round(hours)} hour(s), "
+        cpu_time += f"{round(hours)} H, "
     if minutes > 0:
-        cpu_time += f"{round(minutes)} minute(s), "
+        cpu_time += f"{round(minutes)} m, "
     if seconds > 0:
-        cpu_time += f"{round(seconds)} second(s)"
+        cpu_time += f"{round(seconds)} s"
 
     return cpu_time
 
