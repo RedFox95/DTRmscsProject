@@ -6,7 +6,7 @@
     <div class="container">
         <div class="row">
             <div class="col-sm-12 col-md-8 col-lg-6 container card login-card">
-                <form id="loginForm" action="{{ url_for('login') }}" method="post">
+                <form id="loginForm" action="/login" method="post">
                     <div class="form-group">
                         <label for="username">Username:</label>
                         <input type="text" class="form-control" id="username" name="username">
@@ -17,7 +17,7 @@
                     </div>
                     <div class="row">
                       <div class="col-12">
-                          <button type="submit" class="btn btn-primary">Login</button>
+                          <button type="submit" class="btn btn-primary" id="loginBtn">Login</button>
                       </div>
                     </div>
                 </form>

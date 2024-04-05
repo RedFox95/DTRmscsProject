@@ -19,7 +19,7 @@ hr {
   color: #fff;
 }
 
-.btn:hover {
+.btn:hover, #loginBtn.btn:active {
   background-color: rgba(0,0,0,0);
   border: 2px solid #b31b1b;
   color: #b31b1b;

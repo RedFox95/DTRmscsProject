@@ -1,4 +1,4 @@
-from flask import Flask, render_template, jsonify, Response, request
+from flask import Flask, render_template, jsonify, Response, request, redirect
 from datetime import timedelta
 import psutil
 import threading
@@ -84,10 +84,15 @@ def home():
     # This route renders the HTML template for the dashboard.
     return render_template('index.html')
 
-@app.route('/login', methods=['Get', 'POST'])
+@app.route('/login', methods=['GET', 'POST'])
 def login():
-    login_credentials = request.form
-    print(login_credentials)
+    if request.form:
+        username = request.form['username']
+        password = request.form['password']
+
+        if username == "test1" and password == "test2":
+            return redirect('/')
+
     # This route renders the HTML template for the dashboard.
     return render_template('login.html')
 
