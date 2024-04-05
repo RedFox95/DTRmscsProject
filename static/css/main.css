@@ -11,6 +11,7 @@ hr {
   color: #b31b1b;
   top: 0px;
   font-weight: bold;
+  margin: 0px;
 }
 
 .btn {
@@ -31,7 +32,6 @@ hr {
 }
 
 .headerBar h1 a {
-  position: absolute;
   text-decoration: none;
   color: inherit;
 }

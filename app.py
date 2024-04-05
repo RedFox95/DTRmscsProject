@@ -15,7 +15,7 @@ import sched
 
 app = Flask(__name__)
 
-wait_interval = 1
+wait_interval = 2
 cpu_chart_buffer = deque([0] * 61, maxlen=61)
 
 # Function to collect and print metrics
@@ -96,9 +96,13 @@ def home():
     x = [i for i in range(61)]
     x = x[::-1]
 
-    p = figure(name='cpu_usage', title='CPU Usage', x_axis_label='Seconds', y_axis_label='%', tools='', x_range=(60, 0),
+    p = figure(name='cpu_usage', x_axis_label='Seconds', y_axis_label='%', tools='', x_range=(60, 0),
                 height=900, width=1600, sizing_mode='stretch_both', y_axis_location='right')
-    p.line(x, list(cpu_chart_buffer), legend_label="Data", line_width=2, line_color='#b31b1b')
+    p.line(x, list(cpu_chart_buffer), legend_label="cpu usage", line_width=2, line_color='#b31b1b')
+    p.legend.location = 'top_left'
+    p.legend.background_fill_color = "#232323"
+    p.legend.label_text_color = "#a8a8a8"
+    p.toolbar.logo = None
 
     curdoc().theme = Theme(filename='./theme/theme.json')
     curdoc().add_root(p)
@@ -120,12 +124,12 @@ def login():
     # This route renders the HTML template for the dashboard.
     return render_template('login.html')
 
-@app.route('/reports')
+@app.route('/reports', methods=['GET'])
 def reports():
     # This route renders the HTML template for the report view.
     return render_template('report.html')
 
-@app.route('/cpu-stream')
+@app.route('/cpu-stream', methods=['GET'])
 def cpu_stream():
     def generate():
         while True:
@@ -134,7 +138,7 @@ def cpu_stream():
 
     return Response(generate(), mimetype="text/event-stream")
 
-@app.route('/memory-stream')
+@app.route('/memory-stream', methods=['GET'])
 def mem_stream():
     def generate():
         while True:
@@ -143,7 +147,7 @@ def mem_stream():
 
     return Response(generate(), mimetype="text/event-stream")
 
-@app.route('/disk-stream')
+@app.route('/disk-stream', methods=['GET'])
 def disk_stream():
     def generate():
         while True:
@@ -152,7 +156,7 @@ def disk_stream():
 
     return Response(generate(), mimetype="text/event-stream")
 
-@app.route('/process-stream')
+@app.route('/process-stream', methods=['GET'])
 def process_stream():
     def generate():
         while True:
