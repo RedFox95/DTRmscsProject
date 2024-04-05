@@ -16,7 +16,7 @@ import sched
 app = Flask(__name__)
 
 wait_interval = 1
-cpu_chart_buffer = deque([0] * 50, maxlen=50)
+cpu_chart_buffer = deque([0] * 61, maxlen=61)
 
 # Function to collect and print metrics
 def collect_metrics():
@@ -93,11 +93,15 @@ def get_process_info():
 
 @app.route('/')
 def home():
-    x = [i for i in range(50)]
+    x = [i for i in range(61)]
+    x = x[::-1]
 
-    p = figure(name="cpu_usage", title="CPU Usage", y_axis_label='%', tools="",
-                height=900, width=1600, sizing_mode='stretch_both')
-    p.line(x, list(cpu_chart_buffer), legend_label="Data", line_width=2)
+    p = figure(name='cpu_usage', title='CPU Usage', x_axis_label='Seconds', y_axis_label='%', tools='', x_range=(60, 0),
+                height=900, width=1600, sizing_mode='stretch_both', y_axis_location='right')
+    p.line(x, list(cpu_chart_buffer), legend_label="Data", line_width=2, line_color='#b31b1b')
+
+    curdoc().theme = Theme(filename='./theme/theme.json')
+    curdoc().add_root(p)
 
     script, div = components(p)
 

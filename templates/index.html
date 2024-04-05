@@ -18,19 +18,19 @@
         </div>
       </div>
     </div>
-    <hr>
     <div class="row">
       <div class="col-12">
         <div class="row">
-          <div class="col-3">
+          <div class="col-2">
             <h2>Usage:</h2>
           </div>
           <div class="col-9">
             <h3><span id="cpuUsage"></span><span> %</span></h3>
           </div>
         </div>
+        <hr>
         <div class="row">
-          <div class="col-3">
+          <div class="col-2">
             <h2>Speed:</h2>
           </div>
           <div class="col-9">
@@ -38,7 +38,7 @@
           </div>
         </div>
         <div class="row">
-          <div class="col-3">
+          <div class="col-2">
             <h2>Up-time:</h2>
           </div>
           <div class="col-9">
@@ -46,16 +46,16 @@
           </div>
         </div>
         <div class="row">
-          <div class="col-3">
-            <h2>Physical Count:</h2>
+          <div class="col-2">
+            <h2>Physical #:</h2>
           </div>
           <div class="col-9">
             <h3><span id="cpuPhysical"></span></h3>
           </div>
         </div>
         <div class="row">
-          <div class="col-3">
-            <h2>Logical Count:</h2>
+          <div class="col-2">
+            <h2>Logical #:</h2>
           </div>
           <div class="col-9">
             <h3><span id="cpuLogical"></span></h3>
@@ -73,15 +73,7 @@
     </div>
     <hr>
     <div class="row">
-      <div class="col-3">
-        <h2>Available:</h2>
-      </div>
-      <div class="col-9">
-        <h3><span id="memTotal"></span><span> GB</span></h3>
-      </div>
-    </div>
-    <div class="row">
-      <div class="col-3">
+      <div class="col-2">
         <h2>Used:</h2>
       </div>
       <div class="col-9">
@@ -89,7 +81,15 @@
       </div>
     </div>
     <div class="row">
-      <div class="col-3">
+      <div class="col-2">
+        <h2>Available:</h2>
+      </div>
+      <div class="col-9">
+        <h3><span id="memTotal"></span><span> GB</span></h3>
+      </div>
+    </div>
+    <div class="row">
+      <div class="col-2">
         <h2>Percent:</h2>
       </div>
       <div class="col-9">
@@ -176,9 +176,9 @@
     diskData = JSON.parse(event.data);
     diskData.forEach((disk) => {
       diskContainer.innerHTML += '<div class="row"><div class="col-12"><h1>Disk: ' + disk.mountpoint + '</h1></div></div>' +
-          '<div class="row"><div class="col-3"><h2>Capacity:</h2></div><div class="col-9"><h3>' + disk.total + ' GB</h3></div></div>' +
-          '<div class="row"><div class="col-3"><h2>Used:</h2></div><div class="col-9"><h3>' + disk.used + ' GB</h3></div></div>' +
-          '<div class="row"><div class="col-3"><h2>Percent:</h2></div><div class="col-9"><h3>' + disk.percent + ' %</h3></div></div><hr>';
+          '<div class="row"><div class="col-2"><h2>Capacity:</h2></div><div class="col-9"><h3>' + disk.total + ' GB</h3></div></div>' +
+          '<div class="row"><div class="col-2"><h2>Used:</h2></div><div class="col-9"><h3>' + disk.used + ' GB</h3></div></div>' +
+          '<div class="row"><div class="col-2"><h2>Percent:</h2></div><div class="col-9"><h3>' + disk.percent + ' %</h3></div></div><hr>';
     });
   };
 
