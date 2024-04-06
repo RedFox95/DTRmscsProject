@@ -1,5 +1,4 @@
 from flask import Flask, render_template, jsonify, Response, request, redirect
-from random import randint
 import metrics.SystemMetrics as sm
 import charts.BokehCharts as bc
 import threading
@@ -12,7 +11,7 @@ app = Flask(__name__)
 
 system_metrics = sm.SystemMetrics()
 bokeh_chart = bc.BokehCharts()
-wait_interval = 10
+wait_interval = 1
 
 # Function to collect and print metrics
 def collect_metrics():
@@ -35,12 +34,9 @@ def start_scheduler():
 
 @app.route('/')
 def home():
-    cpu_script, cpu_div = bokeh_chart.get_cpu_chart()
-    mem_script, mem_div = bokeh_chart.get_mem_chart()
-
+    figure_dict = bokeh_chart.get_charts()
     # This route renders the HTML template for the dashboard.
-    return render_template('index.html', cpu_script=cpu_script, cpu_div=cpu_div,
-                            mem_script=mem_script, mem_div=mem_div)
+    return render_template('index.html', cpu_usage=figure_dict['cpu_usage'], mem_usage=figure_dict['mem_usage'])
 
 @app.route('/login', methods=['GET', 'POST'])
 def login():

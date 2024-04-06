@@ -5,12 +5,13 @@ import time
 
 class SystemMetrics():
     def __init__(self):
-        self.cpu_chart_buffer = deque([0] * 61, maxlen=61)
-        self.mem_chart_buffer = deque([0] * 61, maxlen=61)
+        self.buffer_len = 61
+        self.cpu_chart_buffer = deque([0] * self.buffer_len, maxlen=self.buffer_len)
+        self.mem_chart_buffer = deque([0] * self.buffer_len, maxlen=self.buffer_len)
 
     def get_cpu_info(self):
         freq = psutil.cpu_freq()
-        usage = psutil.cpu_percent(interval=1)
+        usage = psutil.cpu_percent(interval=None)
         boot_time = psutil.boot_time()
         current_time = time.time()
         uptime_seconds = current_time - boot_time

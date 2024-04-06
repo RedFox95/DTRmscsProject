@@ -2,8 +2,8 @@
 
 {% block content %}
 {% include 'navigation.html' %}
-{{ cpu_script | safe }}
-{{ mem_script | safe }}
+{{ cpu_usage.script | safe}}
+{{ mem_usage.script | safe }}
 <div class="mainContent">
   <div class="cpuContainer container card">
     <div class="row">
@@ -13,7 +13,7 @@
     </div>
     <div class="row">
       <div id="cpuSpeedChart">
-        {{ cpu_div | safe }}
+        {{ cpu_usage.div | safe }}
       </div>
     </div>
     <div class="row">
@@ -76,7 +76,7 @@
     </div>
     <div class="row">
       <div id="memSpeedChart">
-        {{ mem_div | safe }}
+        {{ mem_usage.div | safe }}
       </div>
     </div>
     <div class="row">
@@ -142,12 +142,14 @@
 function waitForBokeh(callback) {
     obj = window['Bokeh'];
     docs = obj.documents;
-    if (obj && docs.length > 0) {
+    if (docs.length == 2) {
         callback();
     } else {
         setTimeout(function() { waitForBokeh(callback) }, 100);
     }
 }
+
+const getBokehDoc = (title) => Bokeh.documents.find(obj => obj._title === title);
 
 window.onload = function() {
     waitForBokeh(function() {
@@ -157,14 +159,11 @@ window.onload = function() {
         const cpuSpeed = document.getElementById('cpuSpeed');
         const cpuUsage = document.getElementById('cpuUsage');
         const cpuUptime = document.getElementById('cpuUptime');
-
-        const cpu_plot = Bokeh.documents[0].get_model_by_name('cpu_usage');
+        const cpu_plot = getBokehDoc('cpu_usage').get_model_by_name('cpu_usage');
         const cpu_line = cpu_plot.renderers[0];
-
         const cpuStream = new EventSource('/cpu-stream');
         cpuStream.onmessage = function(event) {
             cpuData = JSON.parse(event.data);
-
             cpuPhysical.innerText = cpuData.physical;
             cpuLogical.innerText = cpuData.logical;
             cpuSpeed.innerText = cpuData.speed;
@@ -178,14 +177,11 @@ window.onload = function() {
         const memTotal = document.getElementById('memTotal');
         const memUsed = document.getElementById('memUsed');
         const memPercent = document.getElementById('memPercent');
-
-        const mem_plot = Bokeh.documents[1].get_model_by_name('mem_usage');
+        const mem_plot = getBokehDoc('mem_usage').get_model_by_name('mem_usage');
         const mem_line = mem_plot.renderers[0];
-
         const memStream = new EventSource('/memory-stream');
         memStream.onmessage = function(event) {
             memData = JSON.parse(event.data);
-
             memTotal.innerText = memData.total;
             memUsed.innerText = memData.used;
             memPercent.innerText = memData.percent;
@@ -193,14 +189,13 @@ window.onload = function() {
             mem_line.data_source.change.emit();
         };
     });
-}
+  }
 
   // Disk data visualization
   const diskStream = new EventSource('/disk-stream');
   diskStream.onmessage = function(event) {
     let diskContainer = document.getElementById("diskWrapper");
     diskContainer.innerHTML = "";
-
     diskData = JSON.parse(event.data);
     diskData.forEach((disk) => {
       diskContainer.innerHTML += '<div class="row"><div class="col-12"><h1>Disk: ' + disk.mountpoint + '</h1></div></div>' +
@@ -215,7 +210,6 @@ window.onload = function() {
   processStream.onmessage = function(event) {
     let processTable = document.getElementById("processTableBody");
     processTable.innerHTML = "";
-
     processData = JSON.parse(event.data);
     processData.forEach((process) => {
       processTable.innerHTML += '<tr><td>' + process.name + '</td><td>' + process.pid + '</td><td>' +
