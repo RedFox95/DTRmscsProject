@@ -157,6 +157,7 @@
     const cpuStream = new EventSource('/cpu-stream');
     cpuStream.onmessage = function(event) {
       cpuData = JSON.parse(event.data);
+      console.log(cpuData);
 
       cpuPhysical.innerText = cpuData.physical;
       cpuLogical.innerText = cpuData.logical;
