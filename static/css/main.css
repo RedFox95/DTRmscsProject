@@ -9,14 +9,21 @@ hr {
 
 #SMA {
   color: #b31b1b;
-  position: fixed;
   top: 0px;
   font-weight: bold;
+  margin: 0px;
 }
 
 .btn {
-  background: #b31b1b;
+  background-color: #b31b1b;
+  border: 2px solid #b31b1b;
   color: #fff;
+}
+
+.btn:hover, #loginBtn.btn:active {
+  background-color: rgba(0,0,0,0);
+  border: 2px solid #b31b1b;
+  color: #b31b1b;
 }
 
 .headerBar {
@@ -24,12 +31,35 @@ hr {
   padding: 8px;
 }
 
-.mainContent > .container {
+.headerBar h1 a {
+  text-decoration: none;
+  color: inherit;
+}
+
+.mainContent > .card {
   background: #232323;
   margin-top: 32px;
   border-radius: 8px;
+  padding: 8px;
 }
 
-.cpuContainer {
+table#processTable.table th, table#processTable.table td {
+  background-color: rgba(0, 0, 0, 0);
+}
 
+.login-card {
+  margin-top: 40%;
+}
+
+form#loginForm {
+  margin: 16px;
+}
+
+form#loginForm button {
+  margin: 16px 0px 0px 0px;
+  width: 100%;
+}
+
+#cpuSpeedChart, #memSpeedChart {
+  height: 250px;
 }
