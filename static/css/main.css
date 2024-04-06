@@ -45,7 +45,7 @@ hr {
   background: #232323;
   margin-top: 32px;
   border-radius: 8px;
-  padding: 8px;
+  padding: 16px;
 }
 
 table#processTable.table th, table#processTable.table td {
@@ -72,6 +72,7 @@ form#loginForm button {
 
 #cpuSpeedChart, #memSpeedChart {
   height: 250px;
+  padding: 0px 0px 0px 4px;
 }
 
 #loginContainer.container {
