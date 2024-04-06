@@ -6,12 +6,13 @@ import threading
 import time
 import json
 import sched
+import bcrypt
 
 app = Flask(__name__)
 
 system_metrics = sm.SystemMetrics()
 bokeh_chart = bc.BokehCharts()
-wait_interval = 2
+wait_interval = 10
 
 # Function to collect and print metrics
 def collect_metrics():
@@ -38,19 +39,21 @@ def home():
     mem_script, mem_div = bokeh_chart.get_mem_chart()
 
     # This route renders the HTML template for the dashboard.
-    return render_template('index.html', cpu_script=cpu_script, cpu_div=cpu_div, mem_script=mem_script, mem_div=mem_div)
+    return render_template('index.html', cpu_script=cpu_script, cpu_div=cpu_div,
+                            mem_script=mem_script, mem_div=mem_div)
 
 @app.route('/login', methods=['GET', 'POST'])
 def login():
-    if request.form:
-        username = request.form['username']
-        password = request.form['password']
+    username = request.form.get('username', "")
 
-        if username == "test1" and password == "test2":
+    if request.form:
+        password = request.form['password']
+        hashed_password = bcrypt.hashpw(password.encode(), bcrypt.gensalt())
+
+        if bcrypt.checkpw('world'.encode(), hashed_password):
             return redirect('/')
 
-    # This route renders the HTML template for the dashboard.
-    return render_template('login.html')
+    return render_template('login.html', username=username)
 
 @app.route('/reports', methods=['GET'])
 def reports():
