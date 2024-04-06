@@ -162,15 +162,12 @@ window.onload = function() {
         const cpuUsage = document.getElementById('cpuUsage');
         const cpuUptime = document.getElementById('cpuUptime');
 
-        console.log(Bokeh.documents);
-
         const cpu_plot = Bokeh.documents[0].get_model_by_name('cpu_usage');
         const cpu_line = cpu_plot.renderers[0];
 
         const cpuStream = new EventSource('/cpu-stream');
         cpuStream.onmessage = function(event) {
             cpuData = JSON.parse(event.data);
-            console.log(cpuData);
 
             cpuPhysical.innerText = cpuData.physical;
             cpuLogical.innerText = cpuData.logical;

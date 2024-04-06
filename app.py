@@ -1,11 +1,7 @@
 from flask import Flask, render_template, jsonify, Response, request, redirect
-from bokeh.plotting import figure
-from bokeh.embed import components
-from bokeh.io import curdoc
-from bokeh.models import ColumnDataSource, CustomJS
-from bokeh.themes import Theme
 from random import randint
 import metrics.SystemMetrics as sm
+import charts.BokehCharts as bc
 import threading
 import time
 import json
@@ -14,6 +10,7 @@ import sched
 app = Flask(__name__)
 
 system_metrics = sm.SystemMetrics()
+bokeh_chart = bc.BokehCharts()
 wait_interval = 2
 
 # Function to collect and print metrics
@@ -31,47 +28,14 @@ def start_scheduler():
     scheduler.enter(wait_interval, 1, scheduled_task, (scheduler,))
     scheduler.run()
 
-def get_cpu_chart():
-    x = [i for i in range(61)][::-1]
-    y = list(system_metrics.cpu_chart_buffer)
-
-    p = figure(name='cpu_usage', x_axis_label='Seconds', y_axis_label='%', tools='', x_range=(60, 0),
-                height=900, width=1600, sizing_mode='stretch_both', y_axis_location='right')
-    p.line(x, y, legend_label="cpu usage", line_width=2, line_color='#b31b1b')
-    p.legend.location = 'top_left'
-    p.legend.background_fill_color = "#232323"
-    p.legend.label_text_color = "#a8a8a8"
-    p.toolbar.logo = None
-    curdoc().theme = Theme(filename='./theme/theme.json')
-    curdoc().add_root(p)
-
-    return components(p)
-
-def get_mem_chart():
-    x = [i for i in range(61)][::-1]
-    y = list(system_metrics.mem_chart_buffer)
-
-    p = figure(name='mem_usage', x_axis_label='Seconds', y_axis_label='%', tools='', x_range=(60, 0),
-                y_range=(0, 100), height=900, width=1600, sizing_mode='stretch_both', y_axis_location='right')
-    p.line(x, y, legend_label="memory usage", line_width=2, line_color='#b31b1b')
-    p.legend.location = 'top_left'
-    p.legend.background_fill_color = "#232323"
-    p.legend.label_text_color = "#a8a8a8"
-    p.toolbar.logo = None
-    curdoc().theme = Theme(filename='./theme/theme.json')
-    curdoc().add_root(p)
-
-    return components(p)
-
 # @app.before_request
 # def before_request():
 #     return render_template('login.html')
 
 @app.route('/')
 def home():
-    print(system_metrics.get_cpu_info())
-    cpu_script, cpu_div = get_cpu_chart()
-    mem_script, mem_div = get_mem_chart()
+    cpu_script, cpu_div = bokeh_chart.get_cpu_chart()
+    mem_script, mem_div = bokeh_chart.get_mem_chart()
 
     # This route renders the HTML template for the dashboard.
     return render_template('index.html', cpu_script=cpu_script, cpu_div=cpu_div, mem_script=mem_script, mem_div=mem_div)
