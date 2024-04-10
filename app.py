@@ -1,6 +1,6 @@
 from flask import Flask, render_template, jsonify, Response, request, redirect
-import metrics.SystemMetrics as sm
-import charts.BokehCharts as bc
+import backend.metrics.SystemMetrics as sm
+import backend.charts.BokehCharts as bc
 import threading
 import time
 import json

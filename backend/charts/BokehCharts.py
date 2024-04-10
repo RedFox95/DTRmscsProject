@@ -1,4 +1,4 @@
-import metrics.SystemMetrics as sm
+import backend.metrics.SystemMetrics as sm
 from bokeh.plotting import figure
 from bokeh.embed import components
 from bokeh.themes import Theme
@@ -10,7 +10,7 @@ class BokehCharts:
 
     def create_doc(self, title):
         doc = Document(title=title)
-        doc.theme = Theme(filename='charts/theme/theme.json')
+        doc.theme = Theme(filename='static/bokeh/theme/theme.json')
         return doc
 
     def configure_plot(self, plot):
