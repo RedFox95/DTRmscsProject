@@ -65,6 +65,14 @@ class SystemMetrics():
                 pass
         return processes[0:10]
 
+    def get_all_info(self):
+        return {
+            'cpu': self.get_cpu_info(),
+            'memory': self.get_memory_info(),
+            'disk': self.get_disk_info(),
+            'process': self.get_process_info()
+        }
+
     def format_cpu_time(self, t):
         td = timedelta(seconds=t)
         days, remainder = divmod(td.total_seconds(), 86400) # 86400 seconds in a day

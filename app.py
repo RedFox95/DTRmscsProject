@@ -1,5 +1,6 @@
 from flask import Flask, render_template, jsonify, Response, request, redirect
 import backend.metrics.SystemMetrics as sm
+import backend.metrics.MethodScheduler as ms
 import backend.charts.BokehCharts as bc
 import threading
 import time
@@ -10,23 +11,17 @@ import bcrypt
 app = Flask(__name__)
 
 system_metrics = sm.SystemMetrics()
+method_scheduler = ms.MethodScheduler
 bokeh_chart = bc.BokehCharts()
-wait_interval = 1
+json_update_event = threading.Event()
 
 # Function to collect and print metrics
 def collect_metrics():
-    print("Collecting system metrics...")
+    print(f"Collecting system metrics... {time.strftime('%H:%M:%S', time.localtime())}")
 
-# Function to be scheduled
-def scheduled_task(sc):
-    collect_metrics()  # Call the metric collection function
-    sc.enter(wait_interval, 1, scheduled_task, (sc,))  # Schedule the next call
-
-# Start the scheduler in a separate thread
-def start_scheduler():
-    scheduler = sched.scheduler(time.time, time.sleep)
-    scheduler.enter(wait_interval, 1, scheduled_task, (scheduler,))
-    scheduler.run()
+def update_live_view():
+    print(f"Updating live view... {time.strftime('%H:%M:%S', time.localtime())}")
+    json_update_event.set()
 
 # @app.before_request
 # def before_request():
@@ -56,46 +51,19 @@ def reports():
     # This route renders the HTML template for the report view.
     return render_template('report.html')
 
-@app.route('/cpu-stream', methods=['GET'])
-def cpu_stream():
+@app.route('/api/metrics/realtime', methods=['GET'])
+def all_api_metrics():
     def generate():
         while True:
-            yield 'data: {}\n\n'.format(json.dumps(system_metrics.get_cpu_info()))
-            time.sleep(wait_interval)
-
-    return Response(generate(), mimetype="text/event-stream")
-
-@app.route('/memory-stream', methods=['GET'])
-def mem_stream():
-    def generate():
-        while True:
-            yield 'data: {}\n\n'.format(json.dumps(system_metrics.get_memory_info()))
-            time.sleep(wait_interval)
-
-    return Response(generate(), mimetype="text/event-stream")
-
-@app.route('/disk-stream', methods=['GET'])
-def disk_stream():
-    def generate():
-        while True:
-            yield 'data: {}\n\n'.format(json.dumps(system_metrics.get_disk_info()))
-            time.sleep(wait_interval)
-
-    return Response(generate(), mimetype="text/event-stream")
-
-@app.route('/process-stream', methods=['GET'])
-def process_stream():
-    def generate():
-        while True:
-            yield 'data: {}\n\n'.format(json.dumps(system_metrics.get_process_info()))
-            time.sleep(wait_interval)
+            if json_update_event.wait(timeout=None):
+                json_update_event.clear()
+                yield 'data: {}\n\n'.format(json.dumps(system_metrics.get_all_info()))
 
     return Response(generate(), mimetype="text/event-stream")
 
 if __name__ == '__main__':
-    # Start the scheduler thread
-    scheduler_thread = threading.Thread(target=start_scheduler)
-    #scheduler_thread.start()
+    metric_scheduler = method_scheduler(collect_metrics, interval=30)
+    live_view_scheduler = method_scheduler(update_live_view, interval=1)
 
     # Start the Flask app
     app.run(use_reloader=False)  # use_reloader=False if you don't want the app to restart twice
