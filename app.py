@@ -2,6 +2,7 @@ from flask import Flask, render_template, jsonify, Response, request, redirect
 import backend.metrics.SystemMetrics as sm
 import backend.metrics.MethodScheduler as ms
 import backend.charts.BokehCharts as bc
+import backend.database.Database as Database
 import threading
 import time
 import json
@@ -18,6 +19,15 @@ json_update_event = threading.Event()
 # Function to collect and print metrics
 def collect_metrics():
     print(f"Collecting system metrics... {time.strftime('%H:%M:%S', time.localtime())}")
+    db = Database.Database("sma_prod.db")
+    cursor = db.getCursor()
+    metrics = system_metrics.get_all_info()
+    disk_average = sum([disk["percent"] for disk in metrics['disk']]) / len(metrics['disk'])
+    db.addSystemMetrics(metrics['cpu']['usage'], metrics['memory']['percent'], disk_average)
+
+    for index, process in enumerate(metrics['process']):
+        db.addProcessMetrics(process['pid'], process['name'], process['cpu_times'][1],
+                        process['cpu_percent'], process['memory_percent'])
 
 def update_live_view():
     print(f"Updating live view... {time.strftime('%H:%M:%S', time.localtime())}")

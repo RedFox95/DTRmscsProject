@@ -127,7 +127,7 @@
               <th scope="col">Name</th>
               <th scope="col">Memory %</th>
               <th scope="col">CPU %</th>
-              <th scope="col">CPU Time</th>
+              <th scope="col">System Time</th>
               <th scope="col">Created Time</th>
             </tr>
           </thead>
@@ -161,7 +161,6 @@ window.onload = function() {
         const cpuUptime = document.getElementById('cpuUptime');
         const cpu_plot = getBokehDoc('cpu_usage').get_model_by_name('cpu_usage');
         const cpu_line = cpu_plot.renderers[0];
-        const cpuStream = new EventSource('/cpu-stream');
 
         // Memory data visualization
         const memTotal = document.getElementById('memTotal');
@@ -169,7 +168,6 @@ window.onload = function() {
         const memPercent = document.getElementById('memPercent');
         const mem_plot = getBokehDoc('mem_usage').get_model_by_name('mem_usage');
         const mem_line = mem_plot.renderers[0];
-        const memStream = new EventSource('/memory-stream');
 
         const metricDataStream = new EventSource('/api/metrics/realtime');
         metricDataStream.onmessage = function(event) {
@@ -206,7 +204,7 @@ window.onload = function() {
             processData = metricData.process;
             processData.forEach((process) => {
               processTable.innerHTML += '<tr><td>' + process.name + '</td><td>' + process.pid + '</td><td>' +
-                  process.memory_percent + '</td><td>' + process.cpu_percent + '</td><td>' + process.cpu_times +
+                  process.memory_percent + '</td><td>' + process.cpu_percent + '</td><td>' + process.cpu_times[1] +
                   '</td><td>' + process.create_time + '</td></tr>';
             });
         };

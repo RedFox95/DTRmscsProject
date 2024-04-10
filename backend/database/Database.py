@@ -1,5 +1,5 @@
 import sqlite3
-import time 
+import time
 
 class Database:
     def __init__(self, dbName) -> None:
@@ -32,22 +32,32 @@ class Database:
             # this process is already in the Processes table, update execution time
             updateProcessQuery = "update Processes set executionTime={eTime} where pid={id}".format(eTime=executionTime, id=pid)
             self.cursor.execute(updateProcessQuery)
-        # add the metrics to the ProcessMetrics table no matter what 
+        # add the metrics to the ProcessMetrics table no matter what
         insertMetricsQuery = "insert into ProcessMetrics values ({id}, {time}, {cUsage}, {mUsage})".format(id=pid, time=currentTimestamp, cUsage=cpuUsage, mUsage=memoryUsage)
         self.cursor.execute(insertMetricsQuery)
+
+    def get_system_metrics(self):
+        self.cursor.execute("select * from SystemMetrics")
+        system_metrics = self.cursor.fetchall()
+        return system_metrics
+
+    def get_process_metrics(self):
+        self.cursor.execute("select * from Processes")
+        process_metrics = self.cursor.fetchall()
+        return process_metrics
 
     '''
     Prune the system metrics by removing them from the SystemMetrics table and adding the average of the values into the PrunedSystemMetrics table.
     Usage note: this should only be called via the pruneData method and unit tests.
     '''
     def pruneSystemMetrics(self):
-        # get the oldest timestamp 
+        # get the oldest timestamp
         oldestTimeQuery = "select min(timestamp) from SystemMetrics;"
         self.cursor.execute(oldestTimeQuery)
         # NTS: need to index into it twice since it is returned in this form: [(1.23,)]
         oldestTimestamp = self.cursor.fetchall()[0][0]
 
-        # get the newest timestamp 
+        # get the newest timestamp
         newestTimeQuery = "select max(timestamp) from SystemMetrics;"
         self.cursor.execute(newestTimeQuery)
         newestTimestamp = self.cursor.fetchall()[0][0]
@@ -69,7 +79,7 @@ class Database:
         deleteQuery = "delete from SystemMetrics where timestamp>={old} and timestamp<={new};".format(old=oldestTimestamp, new=newestTimestamp)
         self.cursor.execute(deleteQuery)
 
-        # convert to averages 
+        # convert to averages
         cpuAvg = getAverageData(allCpuData)
         memoryAvg = getAverageData(allMemoryData)
         diskAvg = getAverageData(allDiskData)
@@ -88,7 +98,7 @@ class Database:
         self.cursor.execute(allPidsQuery)
         allPids = self.cursor.fetchall()
 
-        # for each process, check the latest timestamp in the ProcessMetrics table 
+        # for each process, check the latest timestamp in the ProcessMetrics table
         for pidTuple in allPids:
             pid = pidTuple[0]
             latestTimestampQuery = "select max(timestamp) from ProcessMetrics where pid={id};".format(id=pid)
@@ -109,15 +119,15 @@ class Database:
         self.pruneProcessMetrics()
 
     '''
-    Returns the cursor for this database. FOR TESTING ONLY. 
+    Returns the cursor for this database. FOR TESTING ONLY.
     Returns None if this is not a testing scenario.
     '''
     def getCursor(self):
         if "test" in self.databaseName:
             return self.cursor
-        
+
 '''
-Returns the average of the data. 
+Returns the average of the data.
 dataList: list of the data to average in the form returned by sql queries (ex: [(a,), (b,), (c,)])
 '''
 def getAverageData(dataList):
@@ -125,5 +135,3 @@ def getAverageData(dataList):
     for data in dataList:
         sum += data[0]
     return sum / len(dataList)
-
-
