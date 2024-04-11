@@ -56,10 +56,22 @@ def login():
 
     return render_template('login.html', username=username)
 
-@app.route('/reports', methods=['GET'])
+@app.route('/reports', methods=['GET', 'POST'])
 def reports():
+    if request.form:
+        db = Database.Database("sma_prod.db")
+        system_metrics = db.get_system_metrics_date_range(request.form['start_date'], request.form['end_date'])
+        process_metrics = db.get_process_metrics_date_range(request.form['start_date'], request.form['end_date'])
+        processes_ids = set()
+        processes_ids |= {int(x[0]) for x in process_metrics}
+        processes_ids = list(processes_ids)
+        print(f"process ids: {processes_ids}")
+        processes = db.get_process_by_id(processes_ids)
+        print(f"processes: {processes}")
+        return render_template('report.html', systemMetrics=system_metrics, processMetrics=process_metrics, processes=processes)
+
     # This route renders the HTML template for the report view.
-    return render_template('report.html')
+    return render_template('report.html', systemMetrics=None, processMetrics=None, processes=None)
 
 @app.route('/api/metrics/realtime', methods=['GET'])
 def all_api_metrics():

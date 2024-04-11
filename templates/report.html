@@ -9,32 +9,47 @@
         <h1>Generate PDF Report</h1>
       </div>
     </div>
-    <div class="row">
-      <div class="col-12">
-        <hr>
-        <div class="row">
-          <div class="col-2">
-            <h2>Start Date:</h2>
-          </div>
-          <div class="col-4">
-            <input type="date" name="" value="">
-          </div>
-          <div class="col-2">
-            <h2>End Date:</h2>
-          </div>
-          <div class="col-4">
-            <input type="date" name="" value="">
+    <form action="/reports" method="post">
+      <div class="row">
+        <div class="col-12">
+          <hr>
+          <div class="row">
+            <div class="col-2">
+              <h2>Start Date:</h2>
+            </div>
+            <div class="col-4">
+              <input type="date" name="start_date" value="">
+            </div>
+            <div class="col-2">
+              <h2>End Date:</h2>
+            </div>
+            <div class="col-4">
+              <input type="date" name="end_date" value="">
+            </div>
           </div>
         </div>
       </div>
-    </div>
-    <div class="row">
-      <div class="col-12">
-        <div class="float-end">
-          <button type="button" name="button" class="btn">Submit</button>
+      <div class="row">
+        <div class="col-12">
+          <div class="float-end">
+            <button type="submit" class="btn">Submit</button>
+          </div>
         </div>
       </div>
-    </div>
+    </form>
   </div>
+  <script type="text/javascript">
+    if (typeof({{ systemMetrics }}) === typeof(undefined) && typeof({{ processMetrics }}) === typeof(undefined)) {
+      console.log("no metrics");
+    } else {
+      console.log("got system metrics");
+      const systemMetrics = {{ systemMetrics | tojson }};
+      const processMetrics = {{ processMetrics | tojson }};
+      const processes = {{ processes | tojson }};
+      console.log("system metrics: ", systemMetrics);
+      console.log("process metrics: ", processMetrics);
+      console.log("processes: ", processes);
+    }
+  </script>
 </div>
 {% endblock %}

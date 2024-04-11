@@ -1,5 +1,6 @@
 import sqlite3
 import time
+import datetime
 
 class Database:
     def __init__(self, dbName) -> None:
@@ -19,6 +20,7 @@ class Database:
         currentTimestamp = time.time()
         insertQuery = "insert into SystemMetrics values ({time}, {cUsage}, {mUsage}, {dUsage})".format(time=currentTimestamp, cUsage=cpuUsage, mUsage=memoryUsage, dUsage=diskUsage)
         self.cursor.execute(insertQuery)
+        self.connection.commit()
 
     def addProcessMetrics(self, pid, name, executionTime, cpuUsage, memoryUsage):
         currentTimestamp = time.time()
@@ -35,16 +37,35 @@ class Database:
         # add the metrics to the ProcessMetrics table no matter what
         insertMetricsQuery = "insert into ProcessMetrics values ({id}, {time}, {cUsage}, {mUsage})".format(id=pid, time=currentTimestamp, cUsage=cpuUsage, mUsage=memoryUsage)
         self.cursor.execute(insertMetricsQuery)
+        self.connection.commit()
 
     def get_system_metrics(self):
         self.cursor.execute("select * from SystemMetrics")
-        system_metrics = self.cursor.fetchall()
-        return system_metrics
+        return self.cursor.fetchall()
+
+    def get_system_metrics_date_range(self, start_date, end_date):
+        start_time = datetime.datetime.strptime(start_date, '%Y-%m-%d').timestamp()
+        end_time = datetime.datetime.strptime(end_date, '%Y-%m-%d').timestamp()
+        self.cursor.execute(f"select * from SystemMetrics where timestamp >= {start_time} and timestamp <= {end_time};")
+        return self.cursor.fetchall()
+
+    def get_process(self):
+        self.cursor.execute("select * from Processes")
+        return self.cursor.fetchall()
+
+    def get_process_by_id(self, ids):
+        self.cursor.execute(f"select * from Processes where pid in ({','.join(['?'] * len(ids))})", ids)
+        return self.cursor.fetchall()
 
     def get_process_metrics(self):
-        self.cursor.execute("select * from Processes")
-        process_metrics = self.cursor.fetchall()
-        return process_metrics
+        self.cursor.execute("select * from ProcessMetrics")
+        return self.cursor.fetchall()
+
+    def get_process_metrics_date_range(self, start_date, end_date):
+        start_time = datetime.datetime.strptime(start_date, '%Y-%m-%d').timestamp()
+        end_time = datetime.datetime.strptime(end_date, '%Y-%m-%d').timestamp()
+        self.cursor.execute(f"select * from ProcessMetrics where timestamp >= {start_time} and timestamp <= {end_time};")
+        return self.cursor.fetchall()
 
     '''
     Prune the system metrics by removing them from the SystemMetrics table and adding the average of the values into the PrunedSystemMetrics table.
