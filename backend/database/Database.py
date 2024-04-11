@@ -45,7 +45,7 @@ class Database:
 
     def get_system_metrics_date_range(self, start_date, end_date):
         start_time = datetime.datetime.strptime(start_date, '%Y-%m-%d').timestamp()
-        end_time = datetime.datetime.strptime(end_date, '%Y-%m-%d').timestamp()
+        end_time = datetime.datetime.strptime(end_date, '%Y-%m-%d').timestamp() + 86399
         self.cursor.execute(f"select * from SystemMetrics where timestamp >= {start_time} and timestamp <= {end_time};")
         return self.cursor.fetchall()
 
@@ -63,8 +63,8 @@ class Database:
 
     def get_process_metrics_date_range(self, start_date, end_date):
         start_time = datetime.datetime.strptime(start_date, '%Y-%m-%d').timestamp()
-        end_time = datetime.datetime.strptime(end_date, '%Y-%m-%d').timestamp()
-        self.cursor.execute(f"select * from ProcessMetrics where timestamp >= {start_time} and timestamp <= {end_time};")
+        end_time = datetime.datetime.strptime(end_date, '%Y-%m-%d').timestamp() + 86399
+        self.cursor.execute(f"select * from ProcessMetrics where timestamp >= {start_time} and timestamp < {end_time};")
         return self.cursor.fetchall()
 
     '''
