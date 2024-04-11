@@ -65,6 +65,10 @@ form#loginForm button {
   width: 100%;
 }
 
+form .error {
+  color: #f55;
+}
+
 .form-control:focus {
   border-color: #b31b1b;
   box-shadow: 0 0 0 .25rem rgba(253,13,10,.25);

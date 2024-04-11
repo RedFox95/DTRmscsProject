@@ -35,14 +35,18 @@
         </div>
       </div>
       <div class="row">
-        <div class="col-12">
+        <div class="col-6 d-flex align-items-center">
+          {% if error %}
+          <div class="error">
+            <span><strong>Error: </strong>{{ error }}</span>
+          </div>
+          {% endif %}
+        </div>
+        <div class="col-6">
           <div class="float-end">
             <button type="submit" class="btn">Download</button>
           </div>
         </div>
-      </div>
-      <div class="error">
-        <p>{{ error }}</p>
       </div>
     </form>
   </div>
