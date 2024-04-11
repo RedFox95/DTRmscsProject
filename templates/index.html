@@ -12,11 +12,11 @@
       </div>
     </div>
     <div class="row">
-      <div id="cpuSpeedChart">
-        {{ cpu_usage.div | safe }}
+      <div class="col-12">
+        <div id="cpuSpeedChart">
+          {{ cpu_usage.div | safe }}
+        </div>
       </div>
-    </div>
-    <div class="row">
       <div class="col-12">
         <div class="row">
           <div class="col-sm-4 col-md-3">
@@ -28,6 +28,8 @@
           <div class="col-5 d-sm-none d-md-block"></div>
         </div>
         <hr>
+      </div>
+      <div class="col-12">
         <div class="row">
           <div class="col-sm-4 col-md-3">
             <h2>Speed:</h2>
@@ -75,8 +77,10 @@
       </div>
     </div>
     <div class="row">
-      <div id="memSpeedChart">
-        {{ mem_usage.div | safe }}
+      <div class="col-12">
+        <div id="memSpeedChart">
+          {{ mem_usage.div | safe }}
+        </div>
       </div>
     </div>
     <div class="row">
