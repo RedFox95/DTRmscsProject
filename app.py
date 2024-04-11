@@ -76,8 +76,8 @@ def all_api_metrics():
     def generate():
         while True:
             if json_update_event.wait(timeout=None):
-                json_update_event.clear()
                 yield 'data: {}\n\n'.format(json.dumps(system_metrics.get_all_info()))
+                json_update_event.clear()
 
     return Response(generate(), mimetype="text/event-stream")
 
@@ -86,4 +86,4 @@ if __name__ == '__main__':
     live_view_scheduler = method_scheduler(update_live_view, interval=1)
 
     # Start the Flask app
-    app.run(use_reloader=False)  # use_reloader=False if you don't want the app to restart twice
+    app.run(threaded=True, use_reloader=False)  # use_reloader=False if you don't want the app to restart twice
