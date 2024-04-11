@@ -87,13 +87,18 @@
         const systemOptions = {
           startY: 20,
           theme: 'grid',
+          headStyles: {fillColor: '#b31b1b'},
         };
         const processOptions = {
           startY: 20,
           theme: 'grid',
           headStyles: {fillColor: [124, 95, 240]},
         };
+        doc.setFontSize(32);
+        doc.text('System Metrics', 14, 16);
         doc.autoTable(systemColumns, systemMetrics, systemOptions);
+        doc.addPage();
+        doc.text('Process Metrics', 14, 16);
         doc.autoTable(processColumns, processMetrics, processOptions);
         doc.save('sma_metric_report.pdf');
       }
