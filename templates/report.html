@@ -1,5 +1,10 @@
 {% extends 'base.html' %}
 
+{% block head %}
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.5.14/jspdf.plugin.autotable.min.js"></script>
+{% endblock %}
+
 {% block content %}
 {% include 'navigation.html' %}
 <div class="mainContent">
@@ -32,23 +37,35 @@
       <div class="row">
         <div class="col-12">
           <div class="float-end">
-            <button type="submit" class="btn">Submit</button>
+            <button type="submit" class="btn">Download</button>
           </div>
         </div>
       </div>
     </form>
   </div>
   <script type="text/javascript">
-    if (typeof({{ systemMetrics }}) === typeof(undefined) && typeof({{ processMetrics }}) === typeof(undefined)) {
-      console.log("no metrics");
-    } else {
-      console.log("got system metrics");
-      const systemMetrics = {{ systemMetrics | tojson }};
-      const processMetrics = {{ processMetrics | tojson }};
-      const processes = {{ processes | tojson }};
-      console.log("system metrics: ", systemMetrics);
-      console.log("process metrics: ", processMetrics);
-      console.log("processes: ", processes);
+    window.onload = function() {
+      if (typeof({{ systemMetrics }}) != typeof(undefined) && typeof({{ processMetrics }}) != typeof(undefined)) {
+        const systemMetrics = {{ systemMetrics | tojson }};
+        const processMetrics = {{ processMetrics | tojson }};
+        const processes = {{ processes | tojson }};
+        const { jsPDF } = window.jspdf;
+        const doc = new jsPDF();
+        const systemColumns = ["Timestamp", "CPU Usage", "Memory Usage", "Disk Usage"];
+        const processColumns = ["PID", "Timestamp", "CPU Usage", "Memory Usage"];
+        const systemOptions = {
+          startY: 20,
+          theme: 'grid',
+        };
+        const processOptions = {
+          startY: 20,
+          theme: 'grid',
+          headStyles: {fillColor : [124, 95, 240]},
+        };
+        doc.autoTable(systemColumns, systemMetrics, systemOptions);
+        doc.autoTable(processColumns, processMetrics, processOptions);
+        doc.save('table.pdf');
+      }
     }
   </script>
 </div>
