@@ -208,7 +208,7 @@ window.onload = function() {
             processData = metricData.process;
             processData.forEach((process) => {
               processTable.innerHTML += '<tr><td>' + process.pid + '</td><td>' + process.name + '</td><td>' +
-                  process.memory_percent + '</td><td>' + process.cpu_percent + '</td><td>' + formatCpuTime(process.cpu_times[1]) +
+                  process.memory_percent + '</td><td>' + (process.cpu_percent / cpuData.logical) + '</td><td>' + formatCpuTime(process.cpu_times[1]) +
                   '</td><td>' + String(getDateTime(process.create_time)).replace(',', ' - ') + '</td></tr>';
             });
         };
