@@ -65,11 +65,11 @@ def reports():
         processes_ids = set()
         processes_ids |= { int(x[0]) for x in process_metrics }
         processes_ids = list(processes_ids)
-        processes = db.get_process_by_id(processes_ids)
+        processes = {process[0]: process[1] for process in db.get_process_by_id(processes_ids)}
         return render_template('report.html', systemMetrics=system_metrics, processMetrics=process_metrics, processes=processes)
 
     # This route renders the HTML template for the report view.
-    return render_template('report.html', systemMetrics="", processMetrics="", processes="")
+    return render_template('report.html', systemMetrics="undefined", processMetrics="undefined", processes="undefined")
 
 @app.route('/api/metrics/realtime', methods=['GET'])
 def all_api_metrics():
