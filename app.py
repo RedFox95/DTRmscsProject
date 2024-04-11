@@ -3,6 +3,7 @@ import backend.metrics.SystemMetrics as sm
 import backend.metrics.MethodScheduler as ms
 import backend.charts.BokehCharts as bc
 import backend.database.Database as Database
+import datetime
 import threading
 import time
 import json
@@ -59,6 +60,12 @@ def login():
 @app.route('/reports', methods=['GET', 'POST'])
 def reports():
     if request.form:
+        start_date = request.form['start_date']
+        end_date = request.form['end_date']
+        if datetime.datetime.strptime(end_date, "%Y-%m-%d") < datetime.datetime.strptime(start_date, "%Y-%m-%d"):
+            return render_template('report.html', systemMetrics="undefined", processMetrics="undefined",
+                                    processes="undefined", error="Start date should be before end date.")
+
         db = Database.Database("sma_prod.db")
         system_metrics = db.get_system_metrics_date_range(request.form['start_date'], request.form['end_date'])
         process_metrics = db.get_process_metrics_date_range(request.form['start_date'], request.form['end_date'])
