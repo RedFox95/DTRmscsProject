@@ -41,6 +41,11 @@
             <span><strong>Error: </strong>{{ error }}</span>
           </div>
           {% endif %}
+          {% if success %}
+          <div class="success">
+            <span>{{ success }}</span>
+          </div>
+          {% endif %}
         </div>
         <div class="col-6">
           <div class="float-end">
