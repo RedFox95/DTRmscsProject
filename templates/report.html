@@ -56,12 +56,6 @@
     </form>
   </div>
   <script type="text/javascript">
-    function getDateTime(utcTimestamp) {
-      const dateObj = new Date(utcTimestamp * 1000);
-      return [dateObj.toLocaleDateString('en-US', { year: 'numeric', month: '2-digit', day: '2-digit' }),
-              dateObj.toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit', second: '2-digit' })];
-    }
-
     window.onload = function() {
       if (typeof({{ systemMetrics }}) != typeof(undefined) && typeof({{ processMetrics }}) != typeof(undefined)) {
         const systemMetrics = {{ systemMetrics | tojson }};
@@ -105,4 +99,6 @@
     }
   </script>
 </div>
+
+{% include 'util_scripts.html' %}
 {% endblock %}

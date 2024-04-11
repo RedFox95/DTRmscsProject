@@ -178,7 +178,7 @@ window.onload = function() {
             cpuLogical.innerText = cpuData.logical;
             cpuSpeed.innerText = cpuData.speed;
             cpuUsage.innerText = cpuData.usage;
-            cpuUptime.innerText = cpuData.uptime;
+            cpuUptime.innerText = formatCpuTime(cpuData.uptime);
             cpu_line.data_source.data['y'] = cpuData.y_values;
             cpu_line.data_source.change.emit();
 
@@ -203,12 +203,14 @@ window.onload = function() {
             processTable.innerHTML = "";
             processData = metricData.process;
             processData.forEach((process) => {
-              processTable.innerHTML += '<tr><td>' + process.name + '</td><td>' + process.pid + '</td><td>' +
-                  process.memory_percent + '</td><td>' + process.cpu_percent + '</td><td>' + process.cpu_times[1] +
-                  '</td><td>' + process.create_time + '</td></tr>';
+              processTable.innerHTML += '<tr><td>' + process.pid + '</td><td>' + process.name + '</td><td>' +
+                  process.memory_percent + '</td><td>' + process.cpu_percent + '</td><td>' + formatCpuTime(process.cpu_times[1]) +
+                  '</td><td>' + String(getDateTime(process.create_time)).replace(',', ' - ') + '</td></tr>';
             });
         };
     });
 }
 </script>
+
+{% include 'util_scripts.html' %}
 {% endblock %}

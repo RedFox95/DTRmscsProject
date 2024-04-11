@@ -15,7 +15,7 @@ class SystemMetrics():
         boot_time = psutil.boot_time()
         current_time = time.time()
         uptime_seconds = current_time - boot_time
-        uptime = self.format_cpu_time(uptime_seconds)
+        uptime = uptime_seconds
         self.cpu_chart_buffer.append(usage)
 
         cpu_data = {
@@ -72,21 +72,3 @@ class SystemMetrics():
             'disk': self.get_disk_info(),
             'process': self.get_process_info()
         }
-
-    def format_cpu_time(self, t):
-        td = timedelta(seconds=t)
-        days, remainder = divmod(td.total_seconds(), 86400) # 86400 seconds in a day
-        hours, remainder = divmod(remainder, 3600) # 3600 minutes in a day
-        minutes, seconds = divmod(remainder, 60)
-
-        cpu_time = ""
-        if days > 0:
-            cpu_time += f"{round(days)}D, "
-        if hours > 0:
-            cpu_time += f"{round(hours)}H, "
-        if minutes > 0:
-            cpu_time += f"{round(minutes)}m, "
-        if seconds > 0:
-            cpu_time += f"{round(seconds)}s"
-
-        return cpu_time
