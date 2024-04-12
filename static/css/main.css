@@ -20,10 +20,15 @@ hr {
   color: #fff;
 }
 
-.btn:hover, #loginBtn.btn:active {
+.btn:hover, #loginBtn.btn:active, #loginBtn.btn:focus-visible {
   background-color: rgba(0,0,0,0);
   border: 2px solid #b31b1b;
   color: #b31b1b;
+  font-weight: bold;
+}
+
+.btn:focus-visible {
+  box-shadow: 0 0 0 0.25rem rgba(253, 13, 15, .5);
 }
 
 .headerBar {
@@ -40,7 +45,7 @@ hr {
   background: #232323;
   margin-top: 32px;
   border-radius: 8px;
-  padding: 8px;
+  padding: 16px;
 }
 
 table#processTable.table th, table#processTable.table td {
@@ -60,6 +65,24 @@ form#loginForm button {
   width: 100%;
 }
 
+form .error {
+  color: #f55;
+}
+
+form .success {
+  color: #5f5;
+}
+
+.form-control:focus {
+  border-color: #b31b1b;
+  box-shadow: 0 0 0 .25rem rgba(253,13,10,.25);
+}
+
 #cpuSpeedChart, #memSpeedChart {
   height: 250px;
+  padding: 0px 0px 0px 4px;
+}
+
+#loginContainer.container {
+  height: 100vh;
 }

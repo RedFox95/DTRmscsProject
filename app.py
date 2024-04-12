@@ -1,126 +1,38 @@
 from flask import Flask, render_template, jsonify, Response, request, redirect
-from datetime import timedelta
-from bokeh.plotting import figure
-from bokeh.embed import components
-from bokeh.io import curdoc
-from bokeh.models import ColumnDataSource, CustomJS
-from bokeh.themes import Theme
-from random import randint
-from collections import deque
-import psutil
+import backend.metrics.SystemMetrics as sm
+import backend.metrics.MethodScheduler as ms
+import backend.charts.BokehCharts as bc
+import backend.database.Database as Database
+import datetime
 import threading
 import time
 import json
 import sched
+import bcrypt
 
 app = Flask(__name__)
 
-wait_interval = 2
-cpu_chart_buffer = deque([0] * 61, maxlen=61)
-mem_chart_buffer = deque([0] * 61, maxlen=61)
+system_metrics = sm.SystemMetrics()
+method_scheduler = ms.MethodScheduler
+bokeh_chart = bc.BokehCharts()
+json_update_event = threading.Event()
 
 # Function to collect and print metrics
 def collect_metrics():
-    print("Collecting system metrics...")
+    print(f"Collecting system metrics... {time.strftime('%H:%M:%S', time.localtime())}")
+    db = Database.Database("sma_prod.db")
+    cursor = db.getCursor()
+    metrics = system_metrics.get_all_info()
+    disk_average = sum([disk["percent"] for disk in metrics['disk']]) / len(metrics['disk'])
+    db.addSystemMetrics(metrics['cpu']['usage'], metrics['memory']['percent'], disk_average)
 
-# Function to be scheduled
-def scheduled_task(sc):
-    collect_metrics()  # Call the metric collection function
-    sc.enter(wait_interval, 1, scheduled_task, (sc,))  # Schedule the next call
+    for index, process in enumerate(metrics['process']):
+        db.addProcessMetrics(process['pid'], process['name'], process['cpu_times'][1],
+                        process['cpu_percent'], process['memory_percent'])
 
-# Start the scheduler in a separate thread
-def start_scheduler():
-    scheduler = sched.scheduler(time.time, time.sleep)
-    scheduler.enter(wait_interval, 1, scheduled_task, (scheduler,))
-    scheduler.run()
-
-def get_cpu_info():
-    freq = psutil.cpu_freq()
-    usage = psutil.cpu_percent(interval=1)
-    boot_time = psutil.boot_time()
-    current_time = time.time()
-    uptime_seconds = current_time - boot_time
-    uptime = format_cpu_time(uptime_seconds)
-    cpu_chart_buffer.append(usage)
-
-    cpu_data = {
-        'speed': freq.current,  # Round to 2 decimal places for GB
-        'usage': usage,
-        'uptime': uptime,
-        'logical': psutil.cpu_count(),
-        'physical': psutil.cpu_count(logical=False),
-        'y_values': list(cpu_chart_buffer)
-    }
-
-    return cpu_data
-
-def get_memory_info():
-    memory = psutil.virtual_memory()
-    total_memory_gb = memory.total / (1024 ** 3)  # Convert bytes to GB
-    used_memory_gb = memory.used / (1024 ** 3)  # Convert bytes to GB
-    memory_percent = memory.percent  # Percentage of memory used
-    mem_chart_buffer.append(memory_percent)
-
-    return {
-        'total': round(total_memory_gb, 2),  # Round to 2 decimal places for GB
-        'used': round(used_memory_gb, 2),
-        'percent': memory_percent,
-        'y_values': list(mem_chart_buffer)
-    }
-
-def get_disk_info():
-    disks = []
-    for partition in psutil.disk_partitions():
-        usage = psutil.disk_usage(partition.mountpoint)
-        disks.append({
-            'device': partition.device,
-            'mountpoint': partition.mountpoint,
-            'total': round(usage.total / (1024 ** 3), 2),  # Convert to GB
-            'used': round(usage.used / (1024 ** 3), 2),  # Convert to GB
-            'percent': usage.percent
-        })
-    return disks
-
-def get_process_info():
-    processes = []
-    for process in psutil.process_iter(['pid', 'name', 'cpu_percent', 'memory_percent', 'cpu_times', 'create_time']):
-        try:
-            processes.append(process.info)
-        except (psutil.NoSuchProcess, psutil.AccessDenied, psutil.ZombieProcess):
-            pass
-    return processes[0:10]
-
-def get_cpu_chart():
-    x = [i for i in range(61)][::-1]
-    y = list(cpu_chart_buffer)
-
-    p = figure(name='cpu_usage', x_axis_label='Seconds', y_axis_label='%', tools='', x_range=(60, 0),
-                height=900, width=1600, sizing_mode='stretch_both', y_axis_location='right')
-    p.line(x, y, legend_label="cpu usage", line_width=2, line_color='#b31b1b')
-    p.legend.location = 'top_left'
-    p.legend.background_fill_color = "#232323"
-    p.legend.label_text_color = "#a8a8a8"
-    p.toolbar.logo = None
-    curdoc().theme = Theme(filename='./theme/theme.json')
-    curdoc().add_root(p)
-
-    return components(p)
-
-def get_mem_chart():
-    x = [i for i in range(61)][::-1]
-    y = list(mem_chart_buffer)
-
-    p = figure(name='mem_usage', x_axis_label='Seconds', y_axis_label='%', tools='', x_range=(60, 0),
-                y_range=(0, 100), height=900, width=1600, sizing_mode='stretch_both', y_axis_location='right')
-    p.line(x, y, legend_label="memory usage", line_width=2, line_color='#b31b1b')
-    p.legend.location = 'top_left'
-    p.legend.background_fill_color = "#232323"
-    p.legend.label_text_color = "#a8a8a8"
-    p.toolbar.logo = None
-    curdoc().theme = Theme(filename='./theme/theme.json')
-    curdoc().add_root(p)
-
-    return components(p)
+def update_live_view():
+    print(f"Updating live view... {time.strftime('%H:%M:%S', time.localtime())}")
+    json_update_event.set()
 
 # @app.before_request
 # def before_request():
@@ -128,119 +40,58 @@ def get_mem_chart():
 
 @app.route('/')
 def home():
-    cpu_script, cpu_div = get_cpu_chart()
-    mem_script, mem_div = get_mem_chart()
-
+    figure_dict = bokeh_chart.get_charts()
     # This route renders the HTML template for the dashboard.
-    return render_template('index.html', cpu_script=cpu_script, cpu_div=cpu_div, mem_script=mem_script, mem_div=mem_div)
+    return render_template('index.html', cpu_usage=figure_dict['cpu_usage'], mem_usage=figure_dict['mem_usage'])
 
 @app.route('/login', methods=['GET', 'POST'])
 def login():
-    if request.form:
-        username = request.form['username']
-        password = request.form['password']
+    username = request.form.get('username', "")
 
-        if username == "test1" and password == "test2":
+    if request.form:
+        password = request.form['password']
+        hashed_password = bcrypt.hashpw(password.encode(), bcrypt.gensalt())
+
+        if bcrypt.checkpw('world'.encode(), hashed_password):
             return redirect('/')
 
-    # This route renders the HTML template for the dashboard.
-    return render_template('login.html')
+    return render_template('login.html', username=username)
 
-@app.route('/reports', methods=['GET'])
+@app.route('/reports', methods=['GET', 'POST'])
 def reports():
+    if request.form:
+        start_date = request.form['start_date']
+        end_date = request.form['end_date']
+        if datetime.datetime.strptime(end_date, "%Y-%m-%d") < datetime.datetime.strptime(start_date, "%Y-%m-%d"):
+            return render_template('report.html', systemMetrics="undefined", processMetrics="undefined",
+                                    processes="undefined", error="Start Date should be before End Date.")
+
+        db = Database.Database("sma_prod.db")
+        system_metrics = db.get_system_metrics_date_range(request.form['start_date'], request.form['end_date'])
+        process_metrics = db.get_process_metrics_date_range(request.form['start_date'], request.form['end_date'])
+        processes_ids = set()
+        processes_ids |= { int(x[0]) for x in process_metrics }
+        processes_ids = list(processes_ids)
+        processes = {process[0]: process[1] for process in db.get_process_by_id(processes_ids)}
+        return render_template('report.html', systemMetrics=system_metrics, processMetrics=process_metrics,
+                                processes=processes, success="Report download will begin in just a moment...")
+
     # This route renders the HTML template for the report view.
-    return render_template('report.html')
+    return render_template('report.html', systemMetrics="undefined", processMetrics="undefined", processes="undefined")
 
-@app.route('/cpu-stream', methods=['GET'])
-def cpu_stream():
+@app.route('/api/metrics/realtime', methods=['GET'])
+def all_api_metrics():
     def generate():
         while True:
-            yield 'data: {}\n\n'.format(json.dumps(get_cpu_info()))
-            time.sleep(wait_interval)
+            if json_update_event.wait(timeout=None):
+                yield 'data: {}\n\n'.format(json.dumps(system_metrics.get_all_info()))
+                json_update_event.clear()
 
     return Response(generate(), mimetype="text/event-stream")
-
-@app.route('/memory-stream', methods=['GET'])
-def mem_stream():
-    def generate():
-        while True:
-            yield 'data: {}\n\n'.format(json.dumps(get_memory_info()))
-            time.sleep(wait_interval)
-
-    return Response(generate(), mimetype="text/event-stream")
-
-@app.route('/disk-stream', methods=['GET'])
-def disk_stream():
-    def generate():
-        while True:
-            yield 'data: {}\n\n'.format(json.dumps(get_disk_info()))
-            time.sleep(wait_interval)
-
-    return Response(generate(), mimetype="text/event-stream")
-
-@app.route('/process-stream', methods=['GET'])
-def process_stream():
-    def generate():
-        while True:
-            yield 'data: {}\n\n'.format(json.dumps(get_process_info()))
-            time.sleep(wait_interval)
-
-    return Response(generate(), mimetype="text/event-stream")
-
-@app.route('/cpu_usage')
-def cpu_usage():
-    cpu_usage_data = {
-        'percent': psutil.cpu_percent(interval=1),
-        'physical_count': get_physical_core_count(),
-        'logical_count': get_logical_core_count(),
-        'speed': get_cpu_speed(),
-        'uptime': get_cpu_uptime()
-    }
-    return jsonify(cpu_usage_data)
-
-@app.route('/api/system_metrics')
-def api_system_metrics():
-    cpu_percent = psutil.cpu_percent(interval=1)
-    memory_info = get_memory_info()
-    disk_info = get_disk_info()
-    process_info = get_process_info()
-
-    response_data = {
-        'cpu_usage': {
-            'percent': cpu_percent,
-            'physical_count': get_physical_core_count(),
-            'logical_count': get_logical_core_count(),
-            'speed': get_cpu_speed(),
-            'uptime': get_cpu_uptime()
-        },
-        'memory_info': memory_info,
-        'disk_info': disk_info,
-        'process_info': process_info
-    }
-    return jsonify(response_data)
-
-def format_cpu_time(t):
-    td = timedelta(seconds=t)
-    days, remainder = divmod(td.total_seconds(), 86400) # 86400 seconds in a day
-    hours, remainder = divmod(remainder, 3600) # 3600 minutes in a day
-    minutes, seconds = divmod(remainder, 60)
-
-    cpu_time = ""
-    if days > 0:
-        cpu_time += f"{round(days)}D, "
-    if hours > 0:
-        cpu_time += f"{round(hours)}H, "
-    if minutes > 0:
-        cpu_time += f"{round(minutes)}m, "
-    if seconds > 0:
-        cpu_time += f"{round(seconds)}s"
-
-    return cpu_time
 
 if __name__ == '__main__':
-    # Start the scheduler thread
-    scheduler_thread = threading.Thread(target=start_scheduler)
-    scheduler_thread.start()
+    metric_scheduler = method_scheduler(collect_metrics, interval=30)
+    live_view_scheduler = method_scheduler(update_live_view, interval=1)
 
     # Start the Flask app
-    app.run(use_reloader=False)  # use_reloader=False if you don't want the app to restart twice
+    app.run(threaded=True, use_reloader=False)  # use_reloader=False if you don't want the app to restart twice

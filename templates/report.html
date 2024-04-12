@@ -1,5 +1,10 @@
 {% extends 'base.html' %}
 
+{% block head %}
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.5.14/jspdf.plugin.autotable.min.js"></script>
+{% endblock %}
+
 {% block content %}
 {% include 'navigation.html' %}
 <div class="mainContent">
@@ -9,32 +14,91 @@
         <h1>Generate PDF Report</h1>
       </div>
     </div>
-    <div class="row">
-      <div class="col-12">
-        <hr>
-        <div class="row">
-          <div class="col-2">
-            <h2>Start Date:</h2>
-          </div>
-          <div class="col-4">
-            <input type="date" name="" value="">
-          </div>
-          <div class="col-2">
-            <h2>End Date:</h2>
-          </div>
-          <div class="col-4">
-            <input type="date" name="" value="">
+    <form action="/reports" method="post">
+      <div class="row">
+        <div class="col-12">
+          <hr>
+          <div class="row">
+            <div class="col-2">
+              <h2><label for="start_date">Start Date:</label></h2>
+            </div>
+            <div class="col-4 d-flex align-items-center">
+              <input id="start_date" type="date" name="start_date" value="">
+            </div>
+            <div class="col-2">
+              <h2><label for="end_date">End Date:</label></h2>
+            </div>
+            <div class="col-4 d-flex align-items-center">
+              <input id="end_date" type="date" name="end_date" value="">
+            </div>
           </div>
         </div>
       </div>
-    </div>
-    <div class="row">
-      <div class="col-12">
-        <div class="float-end">
-          <button type="button" name="button" class="btn">Submit</button>
+      <div class="row">
+        <div class="col-6 d-flex align-items-center">
+          {% if error %}
+          <div class="error">
+            <span><strong>Error: </strong>{{ error }}</span>
+          </div>
+          {% endif %}
+          {% if success %}
+          <div class="success">
+            <span>{{ success }}</span>
+          </div>
+          {% endif %}
+        </div>
+        <div class="col-6">
+          <div class="float-end">
+            <button type="submit" class="btn">Download</button>
+          </div>
         </div>
       </div>
-    </div>
+    </form>
   </div>
+  <script type="text/javascript">
+    window.onload = function() {
+      if (typeof({{ systemMetrics }}) != typeof(undefined) && typeof({{ processMetrics }}) != typeof(undefined)) {
+        const systemMetrics = {{ systemMetrics | tojson }};
+        const processMetrics = {{ processMetrics | tojson }};
+        const processes = {{ processes | tojson }};
+
+        systemMetrics.forEach((row, index) => {
+          const [fDate, fTime] = getDateTime(row[0]);
+          systemMetrics[index][0] = fDate;
+          systemMetrics[index].splice(1, 0, fTime)
+        });
+        processMetrics.forEach((row, index) => {
+          const [fDate, fTime] = getDateTime(row[1]);
+          processMetrics[index].splice(0, 0, fTime);
+          processMetrics[index].splice(0, 0, fDate);
+          processMetrics[index].splice(3, 0, processes[row[2]]);
+        });
+
+        const { jsPDF } = window.jspdf;
+        const doc = new jsPDF();
+        const systemColumns = ["Date", "Time", "CPU Usage", "Memory Usage", "Disk Usage"];
+        const processColumns = ["Date", "Time", "PID", "Name", "CPU Usage", "Memory Usage"];
+        const systemOptions = {
+          startY: 20,
+          theme: 'grid',
+          headStyles: {fillColor: '#b31b1b'},
+        };
+        const processOptions = {
+          startY: 20,
+          theme: 'grid',
+          headStyles: {fillColor: [124, 95, 240]},
+        };
+        doc.setFontSize(32);
+        doc.text('System Metrics', 14, 16);
+        doc.autoTable(systemColumns, systemMetrics, systemOptions);
+        doc.addPage();
+        doc.text('Process Metrics', 14, 16);
+        doc.autoTable(processColumns, processMetrics, processOptions);
+        doc.save('sma_metric_report.pdf');
+      }
+    }
+  </script>
 </div>
+
+{% include 'util_scripts.html' %}
 {% endblock %}

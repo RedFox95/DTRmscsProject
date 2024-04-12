@@ -2,8 +2,8 @@
 
 {% block content %}
 {% include 'navigation.html' %}
-{{ cpu_script | safe }}
-{{ mem_script | safe }}
+{{ cpu_usage.script | safe}}
+{{ mem_usage.script | safe }}
 <div class="mainContent">
   <div class="cpuContainer container card">
     <div class="row">
@@ -12,13 +12,11 @@
       </div>
     </div>
     <div class="row">
-      <div class="">
+      <div class="col-12">
         <div id="cpuSpeedChart">
-          {{ cpu_div | safe }}
+          {{ cpu_usage.div | safe }}
         </div>
       </div>
-    </div>
-    <div class="row">
       <div class="col-12">
         <div class="row">
           <div class="col-sm-4 col-md-3">
@@ -30,6 +28,8 @@
           <div class="col-5 d-sm-none d-md-block"></div>
         </div>
         <hr>
+      </div>
+      <div class="col-12">
         <div class="row">
           <div class="col-sm-4 col-md-3">
             <h2>Speed:</h2>
@@ -77,9 +77,9 @@
       </div>
     </div>
     <div class="row">
-      <div class="">
+      <div class="col-12">
         <div id="memSpeedChart">
-          {{ mem_div | safe }}
+          {{ mem_usage.div | safe }}
         </div>
       </div>
     </div>
@@ -131,7 +131,7 @@
               <th scope="col">Name</th>
               <th scope="col">Memory %</th>
               <th scope="col">CPU %</th>
-              <th scope="col">CPU Time</th>
+              <th scope="col">System Time</th>
               <th scope="col">Created Time</th>
             </tr>
           </thead>
@@ -143,78 +143,78 @@
 </div>
 
 <script>
-  // CPU data visualization
-  window.onload = function() {
-    const cpuPhysical = document.getElementById('cpuPhysical');
-    const cpuLogical = document.getElementById('cpuLogical');
-    const cpuSpeed = document.getElementById('cpuSpeed');
-    const cpuUsage = document.getElementById('cpuUsage');
-    const cpuUptime = document.getElementById('cpuUptime');
+function waitForBokeh(callback) {
+    obj = window['Bokeh'];
+    docs = obj.documents;
+    if (docs.length == 2) {
+        callback();
+    } else {
+        setTimeout(function() { waitForBokeh(callback) }, 100);
+    }
+}
 
-    const cpu_plot = Bokeh.documents[0].get_model_by_name('cpu_usage');
-    const cpu_line = cpu_plot.renderers[0];
+const getBokehDoc = (title) => Bokeh.documents.find(obj => obj._title === title);
 
-    const cpuStream = new EventSource('/cpu-stream');
-    cpuStream.onmessage = function(event) {
-      cpuData = JSON.parse(event.data);
+window.onload = function() {
+    waitForBokeh(function() {
+        // CPU data visualization
+        const cpuPhysical = document.getElementById('cpuPhysical');
+        const cpuLogical = document.getElementById('cpuLogical');
+        const cpuSpeed = document.getElementById('cpuSpeed');
+        const cpuUsage = document.getElementById('cpuUsage');
+        const cpuUptime = document.getElementById('cpuUptime');
+        const cpu_plot = getBokehDoc('cpu_usage').get_model_by_name('cpu_usage');
+        const cpu_line = cpu_plot.renderers[0];
 
-      cpuPhysical.innerText = cpuData.physical;
-      cpuLogical.innerText = cpuData.logical;
-      cpuSpeed.innerText = cpuData.speed;
-      cpuUsage.innerText = cpuData.usage;
-      cpuUptime.innerText = cpuData.uptime;
-      cpu_line.data_source.data['y'] = cpuData.y_values;
-      cpu_line.data_source.change.emit();
-    };
+        // Memory data visualization
+        const memTotal = document.getElementById('memTotal');
+        const memUsed = document.getElementById('memUsed');
+        const memPercent = document.getElementById('memPercent');
+        const mem_plot = getBokehDoc('mem_usage').get_model_by_name('mem_usage');
+        const mem_line = mem_plot.renderers[0];
 
-    // Memory data visualization
-    const memTotal = document.getElementById('memTotal');
-    const memUsed = document.getElementById('memUsed');
-    const memPercent = document.getElementById('memPercent');
+        const metricDataStream = new EventSource('/api/metrics/realtime');
+        metricDataStream.onmessage = function(event) {
+            metricData = JSON.parse(event.data);
 
-    const mem_plot = Bokeh.documents[1].get_model_by_name('mem_usage');
-    const mem_line = mem_plot.renderers[0];
+            cpuData = metricData.cpu;
+            cpuPhysical.innerText = cpuData.physical;
+            cpuLogical.innerText = cpuData.logical;
+            cpuSpeed.innerText = cpuData.speed;
+            cpuUsage.innerText = cpuData.usage;
+            cpuUptime.innerText = formatCpuTime(cpuData.uptime);
+            cpu_line.data_source.data['y'] = cpuData.y_values;
+            cpu_line.data_source.change.emit();
 
-    const memStream = new EventSource('/memory-stream');
-    memStream.onmessage = function(event) {
-      memData = JSON.parse(event.data);
-      console.log(memData);
+            memData = metricData.memory;
+            memTotal.innerText = memData.total;
+            memUsed.innerText = memData.used;
+            memPercent.innerText = memData.percent;
+            mem_line.data_source.data['y'] = memData.y_values;
+            mem_line.data_source.change.emit();
 
-      memTotal.innerText = memData.total;
-      memUsed.innerText = memData.used;
-      memPercent.innerText = memData.percent;
-      mem_line.data_source.data['y'] = memData.y_values;
-      mem_line.data_source.change.emit();
-    };
-  }
+            let diskContainer = document.getElementById("diskWrapper");
+            diskContainer.innerHTML = "";
+            diskData = metricData.disk;
+            diskData.forEach((disk) => {
+              diskContainer.innerHTML += '<div class="row"><div class="col-12"><h1>Disk: ' + disk.mountpoint + '</h1></div></div>' +
+                  '<div class="row"><div class="col-sm-4 col-md-3"><h2>Capacity:</h2></div><div class="col-sm-8 col-md-4"><h3>' + disk.total + ' GB</h3></div><div class="col-5 d-sm-none d-md-block"></div></div>' +
+                  '<div class="row"><div class="col-sm-4 col-md-3"><h2>Used:</h2></div><div class="col-sm-8 col-md-4"><h3>' + disk.used + ' GB</h3></div><div class="col-5 d-sm-none d-md-block"></div></div>' +
+                  '<div class="row"><div class="col-sm-4 col-md-3"><h2>Percent used:</h2></div><div class="col-sm-8 col-md-4"><h3>' + disk.percent + ' %</h3></div><div class="col-5 d-sm-none d-md-block"></div></div><hr>';
+            });
 
-  // Disk data visualization
-  const diskStream = new EventSource('/disk-stream');
-  diskStream.onmessage = function(event) {
-    let diskContainer = document.getElementById("diskWrapper");
-    diskContainer.innerHTML = "";
-
-    diskData = JSON.parse(event.data);
-    diskData.forEach((disk) => {
-      diskContainer.innerHTML += '<div class="row"><div class="col-12"><h1>Disk: ' + disk.mountpoint + '</h1></div></div>' +
-          '<div class="row"><div class="col-sm-4 col-md-3"><h2>Capacity:</h2></div><div class="col-sm-8 col-md-4"><h3>' + disk.total + ' GB</h3></div><div class="col-5 d-sm-none d-md-block"></div></div>' +
-          '<div class="row"><div class="col-sm-4 col-md-3"><h2>Used:</h2></div><div class="col-sm-8 col-md-4"><h3>' + disk.used + ' GB</h3></div><div class="col-5 d-sm-none d-md-block"></div></div>' +
-          '<div class="row"><div class="col-sm-4 col-md-3"><h2>Percent:</h2></div><div class="col-sm-8 col-md-4"><h3>' + disk.percent + ' %</h3></div><div class="col-5 d-sm-none d-md-block"></div></div><hr>';
+            let processTable = document.getElementById("processTableBody");
+            processTable.innerHTML = "";
+            processData = metricData.process;
+            processData.forEach((process) => {
+              processTable.innerHTML += '<tr><td>' + process.pid + '</td><td>' + process.name + '</td><td>' +
+                  process.memory_percent + '</td><td>' + (process.cpu_percent / cpuData.logical) + '</td><td>' + formatCpuTime(process.cpu_times[1]) +
+                  '</td><td>' + String(getDateTime(process.create_time)).replace(',', ' - ') + '</td></tr>';
+            });
+        };
     });
-  };
-
-  // Process data visualization
-  const processStream = new EventSource('/process-stream');
-  processStream.onmessage = function(event) {
-    let processTable = document.getElementById("processTableBody");
-    processTable.innerHTML = "";
-
-    processData = JSON.parse(event.data);
-    processData.forEach((process) => {
-      processTable.innerHTML += '<tr><td>' + process.name + '</td><td>' + process.pid + '</td><td>' +
-          process.memory_percent + '</td><td>' + process.cpu_percent + '</td><td>' + process.cpu_times +
-          '</td><td>' + process.create_time + '</td></tr>';
-    });
-  };
+}
 </script>
+
+{% include 'util_scripts.html' %}
 {% endblock %}
