@@ -1,6 +1,8 @@
 import pytest
 import http.client as httpc
 import json
+import datetime
+import urllib.parse
 
 def test_realtime_metrics():
     conn = httpc.HTTPConnection("localhost", 5000)
@@ -22,14 +24,29 @@ def test_realtime_metrics():
 
 def test_home_route():
     conn = httpc.HTTPConnection("localhost", 5000)
-    conn.request("GET", "/", headers={})
+    conn.request("GET", "/")
     res = conn.getresponse()
 
     assert res.status == 200
 
 def test_reports_route():
     conn = httpc.HTTPConnection("localhost", 5000)
-    conn.request("GET", "/reports", headers={})
+    conn.request("GET", "/reports")
+    res = conn.getresponse()
+
+    assert res.status == 200
+
+def test_report_pdf():
+    today = datetime.date.today().strftime("%Y-%m-%d")
+    form_data = {"start_date": today, "end_date": today}
+    data = urllib.parse.urlencode(form_data).encode('utf-8')
+    headers = {
+        "Content-Type": "application/x-www-form-urlencoded",
+        "Content-Length": len(data)
+    }
+
+    conn = httpc.HTTPConnection("localhost", 5000)
+    conn.request("POST", "/reports", data, headers)
     res = conn.getresponse()
 
     assert res.status == 200
