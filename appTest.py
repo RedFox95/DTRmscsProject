@@ -19,3 +19,17 @@ def test_realtime_metrics():
 
     assert len(data['disk']) > 0
     assert len(data['process']) > 0
+
+def test_home_route():
+    conn = httpc.HTTPConnection("localhost", 5000)
+    conn.request("GET", "/", headers={})
+    res = conn.getresponse()
+
+    assert res.status == 200
+
+def test_reports_route():
+    conn = httpc.HTTPConnection("localhost", 5000)
+    conn.request("GET", "/reports", headers={})
+    res = conn.getresponse()
+
+    assert res.status == 200
