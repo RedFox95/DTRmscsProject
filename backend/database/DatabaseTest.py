@@ -131,3 +131,37 @@ def test_prune_process_metrics():
     cursor.execute("select * from ProcessMetrics where pid=1;")
     assert cursor.fetchall() == []
 
+def test_add_and_delete_user():
+    db = Database.Database("testAddDeleteUser.db")
+    cursor = db.getCursor()
+
+    # add the user and check if they are there
+    db.addUser("testUsername", "testPassword", "testRole")
+    cursor.execute("select * from Users where username='testUsername' and password='testPassword' and role='testRole';")
+    assert len(cursor.fetchall()) == 1
+
+    # delete the user and check that they're not there
+    db.deleteUser("testUsername")
+    cursor.execute("select * from Users where username='testUsername' and password='testPassword' and role='testRole';")
+    assert len(cursor.fetchall()) == 0
+
+def test_password_checking():
+    db = Database.Database("testPasswordChecking.db")
+    cursor = db.getCursor()
+
+    # add the user and check if they are there
+    db.addUser("testUsername", "testPassword", "testRole")
+    cursor.execute("select * from Users where username='testUsername' and password='testPassword' and role='testRole';")
+    assert len(cursor.fetchall()) == 1
+
+    # correct password
+    assert db.isValidLogon("testUsername", "testPassword")
+
+    # incorrect password
+    assert not db.isValidLogon("testUsername", "bad")
+
+    # incorrect username 
+    assert not db.isValidLogon("bad", "testPassword")
+
+    # incorrect username and password
+    assert not db.isValidLogon("bad1", "bad2")
