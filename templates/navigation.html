@@ -5,11 +5,17 @@
         <h1 id="SMA"><a href="/">SMA</a></h1>
       </div>
       <div class="col-2 d-flex flex-column align-items-center align-items-stretch justify-content-center h-auto d-inline-block">
-        <a href="/reports" type="button" class="btn" name="button">Reports</a>
+        {% if logged_in %}
+          <a href="/reports" type="button" class="btn" name="button">Reports</a>
+        {% endif %}
       </div>
       <div class="col-6"></div>
       <div class="col-2 d-flex flex-column align-items-center align-items-stretch justify-content-center h-auto d-inline-block">
-        <a href="/login" type="button" class="btn float-end" name="button">Login</a>
+        {% if not logged_in %}
+          <a href="/login" type="button" class="btn float-end" name="button">Login</a>
+        {% else %}
+          <a href="/logout" type="button" class="btn float-end" name="button">Logout</a>
+        {% endif %}
       </div>
     </div>
   </div>

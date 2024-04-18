@@ -1,4 +1,4 @@
-from flask import Flask, render_template, jsonify, Response, request, redirect
+from flask import Flask, render_template, jsonify, Response, request, redirect, session
 import backend.metrics.SystemMetrics as sm
 import backend.metrics.MethodScheduler as ms
 import backend.charts.BokehCharts as bc
@@ -11,6 +11,7 @@ import sched
 import bcrypt
 
 app = Flask(__name__)
+app.secret_key = 'my_secret_key'
 
 system_metrics = sm.SystemMetrics()
 method_scheduler = ms.MethodScheduler
@@ -34,15 +35,15 @@ def update_live_view():
     print(f"Updating live view... {time.strftime('%H:%M:%S', time.localtime())}")
     json_update_event.set()
 
-# @app.before_request
-# def before_request():
-#     return render_template('login.html')
-
 @app.route('/')
 def home():
+    if session.get('logged_in') == False:
+        session['logged_in'] = False
+
     figure_dict = bokeh_chart.get_charts()
     # This route renders the HTML template for the dashboard.
-    return render_template('index.html', cpu_usage=figure_dict['cpu_usage'], mem_usage=figure_dict['mem_usage'])
+    return render_template('index.html', cpu_usage=figure_dict['cpu_usage'], mem_usage=figure_dict['mem_usage'],
+                            logged_in=session['logged_in'])
 
 @app.route('/login', methods=['GET', 'POST'])
 def login():
@@ -50,12 +51,32 @@ def login():
 
     if request.form:
         password = request.form['password']
-        hashed_password = bcrypt.hashpw(password.encode(), bcrypt.gensalt())
+        db = Database.Database("sma_prod.db")
 
-        if bcrypt.checkpw('world'.encode(), hashed_password):
+        if db.isValidLogon(username, password.encode()):
+            session['logged_in'] = True
             return redirect('/')
 
     return render_template('login.html', username=username)
+
+@app.route('/logout', methods=['GET', 'POST'])
+def logout():
+    session['logged_in'] = False
+    return redirect('/')
+
+@app.route('/register', methods=['GET', 'POST'])
+def register():
+    username = request.form.get('username', "")
+
+    if request.form:
+        password = request.form['password']
+        hashed_password = bcrypt.hashpw(password.encode(), bcrypt.gensalt())
+        db = Database.Database("sma_prod.db")
+
+        db.addUser(username, hashed_password, 'User')
+        return redirect('/login')
+
+    return render_template('register.html', username=username)
 
 @app.route('/reports', methods=['GET', 'POST'])
 def reports():
@@ -74,10 +95,12 @@ def reports():
         processes_ids = list(processes_ids)
         processes = {process[0]: process[1] for process in db.get_process_by_id(processes_ids)}
         return render_template('report.html', systemMetrics=system_metrics, processMetrics=process_metrics,
-                                processes=processes, success="Report download will begin in just a moment...")
+                                processes=processes, success="Report download will begin in just a moment...",
+                                logged_in=session['logged_in'])
 
     # This route renders the HTML template for the report view.
-    return render_template('report.html', systemMetrics="undefined", processMetrics="undefined", processes="undefined")
+    return render_template('report.html', systemMetrics="undefined", processMetrics="undefined", processes="undefined",
+                                logged_in=session['logged_in'])
 
 @app.route('/api/metrics/realtime', methods=['GET'])
 def all_api_metrics():

@@ -52,15 +52,15 @@ table#processTable.table th, table#processTable.table td {
   background-color: rgba(0, 0, 0, 0);
 }
 
-.login-card {
+.login-card, .register-card {
   margin-top: 40%;
 }
 
-form#loginForm {
+form#loginForm, form#registerForm {
   margin: 16px;
 }
 
-form#loginForm button {
+form#loginForm button, form#registerForm button {
   margin: 16px 0px 0px 0px;
   width: 100%;
 }
@@ -71,6 +71,11 @@ form .error {
 
 form .success {
   color: #5f5;
+}
+
+a.loginLink, a.registerLink {
+  color: #f55;
+  margin: 8px 0px 0px 0px;
 }
 
 .form-control:focus {
@@ -84,5 +89,9 @@ form .success {
 }
 
 #loginContainer.container {
+  height: 100vh;
+}
+
+#registerContainer.container {
   height: 100vh;
 }

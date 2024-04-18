@@ -1,6 +1,7 @@
 import sqlite3
 import time
 import datetime
+import bcrypt
 
 class Database:
     def __init__(self, dbName) -> None:
@@ -41,8 +42,7 @@ class Database:
         self.connection.commit()
 
     def addUser(self, username, password, role):
-        insertQuery = "insert into Users values ('{u}', '{p}', '{r}');".format(u=username, p=password, r=role)
-        self.cursor.execute(insertQuery)
+        self.cursor.execute("insert into Users values (?, ?, ?);", (username, password, role))
         self.connection.commit()
 
     def deleteUser(self, username):
@@ -54,13 +54,12 @@ class Database:
         getPasswordQuery = "select password from Users where username='{u}';".format(u=username)
         self.cursor.execute(getPasswordQuery)
         storedPassword = self.cursor.fetchall()
+
         if storedPassword == []:
-            # bad username 
-            return False 
-        if storedPassword[0][0] != password:
-            # bad password
+            # bad username
             return False
-        return True
+
+        return bcrypt.checkpw(password, storedPassword[0][0])
 
     def get_system_metrics(self):
         self.cursor.execute("select * from SystemMetrics")
