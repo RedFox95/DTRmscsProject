@@ -1,7 +1,7 @@
 import pytest
 import http.client as httpc
 import json
-import datetime
+from datetime import date, datetime
 import urllib.parse
 
 def test_realtime_metrics():
@@ -29,6 +29,42 @@ def test_home_route():
 
     assert res.status == 200
 
+def test_login_route():
+    conn = httpc.HTTPConnection("localhost", 5000)
+    conn.request("GET", "/login")
+    res = conn.getresponse()
+
+    assert res.status == 200
+
+def test_register_route():
+    time_now = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+    print(time_now)
+    form_data = {"username": time_now, "password": time_now}
+    data = urllib.parse.urlencode(form_data).encode('utf-8')
+    headers = {
+        "Content-Type": "application/x-www-form-urlencoded",
+        "Content-Length": len(data)
+    }
+
+    conn = httpc.HTTPConnection("localhost", 5000)
+    conn.request("POST", "/register", data, headers)
+    res = conn.getresponse()
+    print(res.read())
+    print("res 1:", res.status)
+
+    # Check for successful redirect on account creation
+    if res.status == 302:
+        conn.request("POST", "/login", data, headers)
+        res = conn.getresponse()
+        print("res 2:", res.status)
+
+        # Check for redirect on successful login
+        assert res.status == 302
+    else:
+        assert False
+
+test_register_route()
+
 def test_reports_route():
     conn = httpc.HTTPConnection("localhost", 5000)
     conn.request("GET", "/reports")
@@ -37,7 +73,7 @@ def test_reports_route():
     assert res.status == 200
 
 def test_report_pdf():
-    today = datetime.date.today().strftime("%Y-%m-%d")
+    today = date.today().strftime("%Y-%m-%d")
     form_data = {"start_date": today, "end_date": today}
     data = urllib.parse.urlencode(form_data).encode('utf-8')
     headers = {
