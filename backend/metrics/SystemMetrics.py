@@ -56,7 +56,7 @@ class SystemMetrics():
             })
         return disks
 
-    def get_process_info(self):
+    def get_process_info(self) -> list[dict]:
         processes = []
         for process in psutil.process_iter(['pid', 'name', 'cpu_percent', 'memory_percent', 'cpu_times', 'create_time']):
             try:

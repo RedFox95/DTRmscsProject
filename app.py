@@ -27,8 +27,8 @@ def collect_metrics():
     db.addSystemMetrics(metrics['cpu']['usage'], metrics['memory']['percent'], disk_average)
 
     for index, process in enumerate(metrics['process']):
-        db.addProcessMetrics(process['pid'], process['name'], process['cpu_times'][1],
-                        process['cpu_percent'], process['memory_percent'])
+        db.addProcessMetrics(process['pid'], process['name'], process['cpu_times'] or 0.0,
+                        process['cpu_percent'] or 0.0, process['memory_percent'] or 0.0)
 
 def update_live_view():
     print(f"Updating live view... {time.strftime('%H:%M:%S', time.localtime())}")
