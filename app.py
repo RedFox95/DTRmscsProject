@@ -28,7 +28,7 @@ def collect_metrics():
     db.addSystemMetrics(metrics['cpu']['usage'], metrics['memory']['percent'], disk_average)
 
     for index, process in enumerate(metrics['process']):
-        db.addProcessMetrics(process['pid'], process['name'], process['cpu_times'][1],
+        db.addProcessMetrics(process['pid'], process['name'], process['cpu_times'].system or 0,
                         process['cpu_percent'], process['memory_percent'])
 
 def update_live_view():
@@ -37,7 +37,7 @@ def update_live_view():
 
 @app.route('/')
 def home():
-    if session.get('logged_in') == False:
+    if session.get('logged_in') == None:
         session['logged_in'] = False
 
     figure_dict = bokeh_chart.get_charts()
