@@ -15,7 +15,7 @@ class Database:
         self.cursor.execute("create table if not exists PrunedSystemMetrics (startTimestamp real, endTimestamp real, cpuUsageAverage real, memoryUsageAverage real, diskUsageAverage real)")
         self.cursor.execute("create table if not exists Processes (pid integer, name text, executionTime real)")
         self.cursor.execute("create table if not exists ProcessMetrics (pid integer, timestamp real, cpuUsage real, memoryUsage real)")
-        self.cursor.execute("create table if not exists Users (username text, password text, role text)")
+        self.cursor.execute("create table if not exists Users (username text primary key, password text, role text)")
 
 
     def addSystemMetrics(self, cpuUsage, memoryUsage, diskUsage):
@@ -56,8 +56,7 @@ class Database:
         self.connection.commit()
 
     def isValidLogon(self, username, password):
-        getPasswordQuery = "select password from Users where username='{u}';".format(u=username)
-        self.cursor.execute(getPasswordQuery)
+        self.cursor.execute("select password from Users where username='{u}';".format(u=username))
         storedPassword = self.cursor.fetchall()
 
         if storedPassword == []:
@@ -65,6 +64,14 @@ class Database:
             return False
 
         return bcrypt.checkpw(password.encode(), storedPassword[0][0])
+
+    def getUsers(self):
+        self.cursor.execute("select username, role from Users")
+        return self.cursor.fetchall()
+
+    def getUserRole(self, username):
+        self.cursor.execute("select role from Users where username='{u}';".format(u=username))
+        return self.cursor.fetchall()
 
     def get_system_metrics(self):
         self.cursor.execute("select * from SystemMetrics")

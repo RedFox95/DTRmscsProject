@@ -14,21 +14,21 @@ hr {
   margin: 0px;
 }
 
-.btn {
+.btn, .btn:active {
   background-color: #b31b1b;
   border: 2px solid #b31b1b;
   color: #fff;
 }
 
-.btn:hover, #loginBtn.btn:active, #loginBtn.btn:focus-visible {
-  background-color: rgba(0,0,0,0);
-  border: 2px solid #b31b1b;
-  color: #b31b1b;
+.btn:hover, .btn:active, .btn:focus-visible {
+  background-color: rgba(0,0,0,0)!important;
+  border: 2px solid #b31b1b!important;
+  color: #b31b1b!important;
   font-weight: bold;
 }
 
 .btn:focus-visible {
-  box-shadow: 0 0 0 0.25rem rgba(253, 13, 15, .5);
+  box-shadow: 0 0 0 0.25rem rgba(253, 13, 15, .5)!important;
 }
 
 .headerBar {
@@ -48,7 +48,7 @@ hr {
   padding: 16px;
 }
 
-table#processTable.table th, table#processTable.table td {
+table#processTable.table th, table#processTable.table td, table#userTable.table th, table#userTable.table td {
   background-color: rgba(0, 0, 0, 0);
 }
 

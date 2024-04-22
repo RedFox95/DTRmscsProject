@@ -4,19 +4,27 @@
       <div class="col-2 d-flex flex-column align-items-center align-items-stretch justify-content-center h-auto d-inline-block">
         <h1 id="SMA"><a href="/">SMA</a></h1>
       </div>
-      <div class="col-2 d-flex flex-column align-items-center align-items-stretch justify-content-center h-auto d-inline-block">
-        {% if logged_in %}
-          <a href="/reports" type="button" class="btn" name="button">Reports</a>
-        {% endif %}
-      </div>
-      <div class="col-6"></div>
-      <div class="col-2 d-flex flex-column align-items-center align-items-stretch justify-content-center h-auto d-inline-block">
-        {% if not logged_in %}
+      {% if not logged_in %}
+        <div class="col-8"></div>
+        <div class="col-2 d-flex flex-column align-items-center align-items-stretch justify-content-center h-auto d-inline-block">
           <a href="/login" type="button" class="btn float-end" name="button">Login</a>
+        </div>
+      {% else %}
+        <div class="col-2 d-flex flex-column align-items-center align-items-stretch justify-content-center h-auto d-inline-block">
+            <a href="/reports" type="button" class="btn" name="button">Reports</a>
+        </div>
+        {% if role == 'Admin' %}
+        <div class="col-4"></div>
+        <div class="col-2 d-flex flex-column align-items-center align-items-stretch justify-content-center h-auto d-inline-block">
+          <a href="/admin" type="button" class="btn float-end" name="button">Admin</a>
+        </div>
         {% else %}
-          <a href="/logout" type="button" class="btn float-end" name="button">Logout</a>
+        <div class="col-6"></div>
         {% endif %}
-      </div>
+        <div class="col-2 d-flex flex-column align-items-center align-items-stretch justify-content-center h-auto d-inline-block">
+          <a href="/logout" type="button" class="btn float-end" name="button">Logout</a>
+        </div>
+      {% endif %}
     </div>
   </div>
 </div>

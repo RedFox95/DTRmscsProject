@@ -1,0 +1,108 @@
+{% extends 'base.html' %}
+
+{% block content %}
+{% include 'navigation.html' %}
+<div class="mainContent">
+  <div class="container card">
+    <div class="row">
+      <div class="col-12">
+        <div class="row">
+          <div class="col-3">
+            <h1>Admin</h1>
+          </div>
+          <div class="col-9">
+            <h1 id="adminSuccess" class="text-success" style="display:none;">✅ All changes saved</h1>
+          </div>
+        </div>
+        <hr>
+      </div>
+      <div class="col-12">
+        <table id="userTable" class="table">
+          <thead>
+            <tr>
+              <th scope="col">Username</th>
+              <th scope="col">Role</th>
+              <th scope="col">Delete</th>
+            </tr>
+          </thead>
+          <tbody id="userTableBody">
+            {% for user in users %}
+            <tr>
+              <td>
+                {{ user.username }}
+              </td>
+              <td>
+                <input type="text" name="role" data-id='{{ user.username }}' placeholder='{{ user.role }}'></input>
+              </td>
+              <td>
+                <button type="button" name="delete" data-id='{{ user.username }}' class="btn">Delete</button>
+              </td>
+            </tr>
+          {% endfor %}
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+</div>
+<script>
+window.onload = function() {
+  const userTableBody = document.getElementById('userTableBody');
+  let timeout;
+
+  userTableBody.addEventListener('input', function(event) {
+    console.log(event.target);
+
+    clearTimeout(timeout);
+    timeout = setTimeout(function() {
+      fetch('/admin', {
+              method: 'POST',
+              headers: {
+                "Content-Type": "application/json"
+              },
+              body: JSON.stringify({username: event.target.getAttribute('data-id'), newRole: event.target.value, delete: false})
+            })
+            .then(response => response.json())
+            .then(data => {
+                let adminSuccess = document.getElementById('adminSuccess');
+                adminSuccess.style.display = "Block";
+                setTimeout(() => {
+                  adminSuccess.style.display = "None";
+                }, 5000);
+            })
+            .catch(error => {
+                console.error('Error:', error);
+            });
+    }, 1000);
+  });
+
+  userTableBody.addEventListener('click', function(event) {
+    console.log(event.target);
+
+    clearTimeout(timeout);
+    timeout = setTimeout(function() {
+      fetch('/admin', {
+              method: 'POST',
+              headers: {
+                "Content-Type": "application/json"
+              },
+              body: JSON.stringify({id: 'deleteUser', username: event.target.getAttribute('data-id')})
+            })
+            .then(response => response.json())
+            .then(data => {
+              let adminSuccess = document.getElementById('adminSuccess');
+              adminSuccess.style.display = "Block";
+
+              window.location.reload();
+              setTimeout(() => {
+                adminSuccess.style.display = "None";
+              }, 5000);
+            })
+            .catch(error => {
+                console.error('Error:', error);
+            });
+    }, 1000);
+  });
+}
+</script>
+{% endblock %}
