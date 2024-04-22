@@ -45,6 +45,11 @@ class Database:
         self.cursor.execute("insert into Users values (?, ?, ?);", (username, password, role))
         self.connection.commit()
 
+    def updateUserRole(self, username, newRole):
+        self.cursor.execute("update Users set role = ? where username = ?;")
+        self.cursor.execute(sql, (newRole, username))
+        self.connection.commit()
+
     def deleteUser(self, username):
         deleteQuery = "delete from Users where username='{u}';".format(u=username)
         self.cursor.execute(deleteQuery)

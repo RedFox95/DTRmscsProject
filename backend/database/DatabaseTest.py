@@ -4,7 +4,7 @@ import datetime
 def test_database_init():
     db = Database.Database("testDbInit.db")
     cursor = db.getCursor()
-    # check for the tables 
+    # check for the tables
     cursor.execute("pragma table_info(SystemMetrics);")
     assert cursor.fetchall() != []
     cursor.execute("pragma table_info(PrunedSystemMetrics);")
@@ -25,7 +25,7 @@ def test_add_system_metrics():
 
 def test_add_process_metrics():
     db = Database.Database("testAddProcMet.db")
-    cursor = db.getCursor()    
+    cursor = db.getCursor()
 
     pid = 123
     name = "myProcess"
@@ -48,17 +48,17 @@ def test_add_process_metrics():
     cursor.execute("select * from ProcessMetrics where pid={id} and cpuUsage={cUsage} and memoryUsage={mUsage};".format(id=pid, cUsage=cpuUsage, mUsage=memoryUsage))
     assert cursor.fetchall() != []
 
-    # add another set of metrics 
+    # add another set of metrics
     executionTime2 = 456.789
     cpuUsage2 = 3.333
     memoryUsage2 = 4.444
     db.addProcessMetrics(pid, name, executionTime2, cpuUsage2, memoryUsage2)
 
-    # check there is still one entry in Processes 
+    # check there is still one entry in Processes
     cursor.execute("select * from Processes where pid={id} and name='{pName}';".format(id=pid, pName=name))
     assert len(cursor.fetchall()) == 1
 
-    # check that the execution time was updated 
+    # check that the execution time was updated
     cursor.execute("select executionTime from Processes where pid={id} and name='{pName}';".format(id=pid, pName=name))
     assert (executionTime2,) in cursor.fetchall()
 
@@ -119,7 +119,7 @@ def test_prune_process_metrics():
 
     db.pruneProcessMetrics()
 
-    # ensure pid 0 is still there 
+    # ensure pid 0 is still there
     cursor.execute("select * from Processes where pid=0;")
     assert len(cursor.fetchall()) == 1
     cursor.execute("select * from ProcessMetrics where pid=0;")
@@ -145,6 +145,22 @@ def test_add_and_delete_user():
     cursor.execute("select * from Users where username='testUsername' and password='testPassword' and role='testRole';")
     assert len(cursor.fetchall()) == 0
 
+def test_update_user_role():
+    db = Database.Database("testAddDeleteUser.db")
+    cursor = db.getCursor()
+
+    # add a new user and check that their role updated
+    db.addUser("testUsername", "testPassword", "testRole")
+    cursor.execute("select * from Users where username='testUsername' and password='testPassword' and role='testRole';")
+    db.updateUserRole("testUsername", "testNewRole")
+    cursor.execute("select * from Users where username='testUsername' and password='testPassword' and role='testNewRole';")
+    assert len(cursor.fetchall()) == 1
+
+    # delete the test user
+    db.deleteUser("testUsername")
+    cursor.execute("select * from Users where username='testUsername' and password='testPassword' and role='testNewRole';")
+    assert len(cursor.fetchall()) == 0
+
 def test_password_checking():
     db = Database.Database("testPasswordChecking.db")
     cursor = db.getCursor()
@@ -160,7 +176,7 @@ def test_password_checking():
     # incorrect password
     assert not db.isValidLogon("testUsername", "bad")
 
-    # incorrect username 
+    # incorrect username
     assert not db.isValidLogon("bad", "testPassword")
 
     # incorrect username and password
