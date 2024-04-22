@@ -37,7 +37,7 @@ def update_live_view():
 
 @app.route('/')
 def home():
-    if session.get('logged_in') == None:
+    if not session.get('logged_in'):
         session['logged_in'] = False
 
     figure_dict = bokeh_chart.get_charts()
