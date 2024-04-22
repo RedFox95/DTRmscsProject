@@ -46,8 +46,8 @@ class Database:
         self.connection.commit()
 
     def updateUserRole(self, username, newRole):
-        self.cursor.execute("update Users set role = ? where username = ?;")
-        self.cursor.execute(sql, (newRole, username))
+        insertQuery = "update Users set role = ? where username = ?;"
+        self.cursor.execute(insertQuery, (newRole, username))
         self.connection.commit()
 
     def deleteUser(self, username):
@@ -64,7 +64,7 @@ class Database:
             # bad username
             return False
 
-        return bcrypt.checkpw(password, storedPassword[0][0])
+        return bcrypt.checkpw(password.encode(), storedPassword[0][0])
 
     def get_system_metrics(self):
         self.cursor.execute("select * from SystemMetrics")

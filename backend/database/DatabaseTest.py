@@ -1,5 +1,6 @@
 import Database
 import datetime
+import bcrypt
 
 def test_database_init():
     db = Database.Database("testDbInit.db")
@@ -166,8 +167,10 @@ def test_password_checking():
     cursor = db.getCursor()
 
     # add the user and check if they are there
-    db.addUser("testUsername", "testPassword", "testRole")
-    cursor.execute("select * from Users where username='testUsername' and password='testPassword' and role='testRole';")
+    hashed_password = bcrypt.hashpw('testPassword'.encode(), bcrypt.gensalt())
+    db.addUser('testUsername', hashed_password, 'testRole')
+    selectQuery = "select * from Users where username='testUsername' and role='testRole';"
+    cursor.execute(selectQuery)
     assert len(cursor.fetchall()) == 1
 
     # correct password

@@ -53,7 +53,7 @@ def login():
         password = request.form['password']
         db = Database.Database("sma_prod.db")
 
-        if db.isValidLogon(username, password.encode()):
+        if db.isValidLogon(username, password):
             session['logged_in'] = True
             return redirect('/')
 
