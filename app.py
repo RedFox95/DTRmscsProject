@@ -31,6 +31,11 @@ def collect_metrics():
         db.addProcessMetrics(process['pid'], process['name'], process['cpu_times'].system or 0,
                         process['cpu_percent'], process['memory_percent'])
 
+def prune_metrics():
+    db = Database.Database("sma_prod.db")
+    db.pruneData()
+
+
 def update_live_view():
     print(f"Updating live view... {time.strftime('%H:%M:%S', time.localtime())}")
     json_update_event.set()
@@ -144,6 +149,7 @@ def admin():
 if __name__ == '__main__':
     metric_scheduler = method_scheduler(collect_metrics, interval=30)
     live_view_scheduler = method_scheduler(update_live_view, interval=1)
+    prune_metrics_scheduler = method_scheduler(prune_metrics, interval=43200) # 12 hours
 
     # Start the Flask app
     app.run(threaded=True, use_reloader=False)  # use_reloader=False if you don't want the app to restart twice
