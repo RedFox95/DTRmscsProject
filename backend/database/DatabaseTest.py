@@ -147,7 +147,7 @@ def test_add_and_delete_user():
     assert len(cursor.fetchall()) == 0
 
 def test_update_user_role():
-    db = Database.Database("testAddDeleteUser.db")
+    db = Database.Database("testUpdateUserRole.db")
     cursor = db.getCursor()
 
     # add a new user and check that their role updated
