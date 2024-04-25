@@ -13,6 +13,9 @@ def test_database_init():
     assert cursor.fetchall() != []
     cursor.execute("pragma table_info(ProcessMetrics);")
     assert cursor.fetchall() != []
+    # check for the admin user
+    cursor.execute("select * from Users where username='admin' and password='drowssap' and role='Admin';")
+    assert len(cursor.fetchall()) == 1
 
 def test_add_system_metrics():
     db = Database.Database("testAddSysMet.db")

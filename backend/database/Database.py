@@ -16,6 +16,9 @@ class Database:
         self.cursor.execute("create table if not exists ProcessMetrics (pid integer, timestamp real, cpuUsage real, memoryUsage real)")
         self.cursor.execute("create table if not exists Users (username text, password text, role text)")
 
+        # add default admin user 
+        self.cursor.execute("insert into Users values ('admin','drowssap', 'Admin');")
+
 
     def addSystemMetrics(self, cpuUsage, memoryUsage, diskUsage):
         currentTimestamp = time.time()
