@@ -17,7 +17,7 @@ class Database:
         self.cursor.execute("create table if not exists Users (username text, password text, role text)")
 
         # add default admin user 
-        self.cursor.execute("insert into Users values ('admin','drowssap', 'Admin');")
+        self.cursor.execute("insert into Users values ('admin','$2b$12$NUtvo5eIyaEIHQPewvkQYuZHDbK6lM/j/uSFbfd1uqo/moj2mE4H6', 'Admin');")
 
 
     def addSystemMetrics(self, cpuUsage, memoryUsage, diskUsage):
