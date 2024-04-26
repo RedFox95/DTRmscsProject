@@ -21,3 +21,6 @@ test*.db
 
 # log files 
 log/
+
+# production database files
+sma_prod.db

@@ -1,13 +1,13 @@
-<!-- templates/login.html -->
+<!-- templates/register.html -->
 {% extends 'base.html' %}
 
 {% block content %}
 <div class="mainContent">
-    <div id="loginContainer" class="container">
+    <div id="registerContainer" class="container">
         <div class="row d-flex align-items-center justify-content-center h-100">
             <div class="col-sm-12 col-md-8 col-lg-6 container card">
-                <form id="loginForm" action="/login" method="post">
-                    <h1>Login</h1>
+                <form id="registerForm" action="/register" method="post">
+                    <h1>Create Account</h1>
                     <div class="form-group">
                         <label for="username">Username:</label>
                         <input type="text" class="form-control" id="username" name="username" value="{{ username }}">
@@ -18,10 +18,10 @@
                     </div>
                     <div class="row">
                       <div class="col-12">
-                          <button type="submit" class="btn btn-primary" id="loginBtn">Login</button>
+                          <button type="submit" class="btn btn-primary" id="registerBtn">Register</button>
                       </div>
                     </div>
-                    <a href="/register" class="registerLink float-end">Register</a>
+                    <a href="/login" class="loginLink float-end">Login</a>
                 </form>
             </div>
         </div>

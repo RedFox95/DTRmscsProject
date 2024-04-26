@@ -2,6 +2,7 @@ import sqlite3
 import time
 import datetime
 import logging 
+import bcrypt
 
 class Database:
     def __init__(self, dbName) -> None:
@@ -16,7 +17,7 @@ class Database:
         self.cursor.execute("create table if not exists PrunedSystemMetrics (startTimestamp real, endTimestamp real, cpuUsageAverage real, memoryUsageAverage real, diskUsageAverage real)")
         self.cursor.execute("create table if not exists Processes (pid integer, name text, executionTime real)")
         self.cursor.execute("create table if not exists ProcessMetrics (pid integer, timestamp real, cpuUsage real, memoryUsage real)")
-        self.cursor.execute("create table if not exists Users (username text, password text, role text)")
+        self.cursor.execute("create table if not exists Users (username text primary key, password text, role text)")
         logging.info("Database finished initialization")
 
 
@@ -51,8 +52,12 @@ class Database:
 
     def addUser(self, username, password, role):
         logging.debug("->", username, "*****", role) # don't want passwords in the log
-        insertQuery = "insert into Users values ('{u}', '{p}', '{r}');".format(u=username, p=password, r=role)
-        self.cursor.execute(insertQuery)
+        self.cursor.execute("insert into Users values (?, ?, ?);", (username, password, role))
+        self.connection.commit()
+
+    def updateUserRole(self, username, newRole):
+        insertQuery = "update Users set role = ? where username = ?;"
+        self.cursor.execute(insertQuery, (newRole, username))
         self.connection.commit()
         logging.debug("<-")
 
@@ -65,19 +70,23 @@ class Database:
 
     def isValidLogon(self, username, password):
         logging.debug("->", username)
-        getPasswordQuery = "select password from Users where username='{u}';".format(u=username)
-        self.cursor.execute(getPasswordQuery)
+        self.cursor.execute("select password from Users where username='{u}';".format(u=username))
         storedPassword = self.cursor.fetchall()
         if storedPassword == []:
             # bad username 
             logging.debug("<-", False)
-            return False 
-        if storedPassword[0][0] != password:
-            # bad password
-            logging.debug("<-", False)
             return False
-        logging.debug("<-", True)
-        return True
+        isValid = bcrypt.checkpw(password.encode(), storedPassword[0][0])
+        logging.debug("<-", isValid)
+        return isValid
+
+    def getUsers(self):
+        self.cursor.execute("select username, role from Users")
+        return self.cursor.fetchall()
+
+    def getUserRole(self, username):
+        self.cursor.execute("select role from Users where username='{u}';".format(u=username))
+        return self.cursor.fetchall()
 
     def get_system_metrics(self):
         self.cursor.execute("select * from SystemMetrics")
