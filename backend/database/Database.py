@@ -3,10 +3,19 @@ import time
 import datetime
 import logging 
 import bcrypt
+import threading
 
 class Database:
+    instance = None 
+    mutex = threading.Lock()
+
     def __init__(self, dbName) -> None:
-        logging.debug("->", dbName)
+        self.mutex.acquire()
+        logging.debug("-> %(dbName)s", {'dbName': dbName})
+        if self.instance != None:
+            logging.info("Database has already been initialized")
+            self.mutex.release()
+            return
         # initialize the database
         self.databaseName = dbName # either "systemMetrics.db" or "testx.db" depending on context
         self.connection = sqlite3.connect(self.databaseName)
@@ -19,10 +28,12 @@ class Database:
         self.cursor.execute("create table if not exists ProcessMetrics (pid integer, timestamp real, cpuUsage real, memoryUsage real)")
         self.cursor.execute("create table if not exists Users (username text primary key, password text, role text)")
         logging.info("Database finished initialization")
+        self.instance = self
+        self.mutex.release()
 
 
     def addSystemMetrics(self, cpuUsage, memoryUsage, diskUsage):
-        logging.debug("->", cpuUsage, memoryUsage, diskUsage)
+        logging.debug("-> %(cpuUsage)d %(memoryUsage)d %(diskUsage)d", {'cpuUsage': cpuUsage, 'memoryUsage': memoryUsage, 'diskUsage': diskUsage})
         currentTimestamp = time.time()
         insertQuery = "insert into SystemMetrics values ({time}, {cUsage}, {mUsage}, {dUsage})".format(time=currentTimestamp, cUsage=cpuUsage, mUsage=memoryUsage, dUsage=diskUsage)
         self.cursor.execute(insertQuery)
@@ -30,7 +41,7 @@ class Database:
         logging.debug("<-")
 
     def addProcessMetrics(self, pid, name, executionTime, cpuUsage, memoryUsage):
-        logging.debug("->", pid, name, executionTime, cpuUsage, memoryUsage)
+        logging.debug("-> %(pid)s %(name)s %(executionTime)d %(cpuUsage)d %(memoryUsage)d", {'pid': pid, 'name': name, 'executionTime': executionTime, 'cpuUsage': cpuUsage, 'memoryUsage': memoryUsage})
         currentTimestamp = time.time()
         # check if pid is in process table, if not then add it
         self.cursor.execute("select * from Processes where pid={id}".format(id=pid))
@@ -51,33 +62,34 @@ class Database:
         logging.debug("<-")
 
     def addUser(self, username, password, role):
-        logging.debug("->", username, "*****", role) # don't want passwords in the log
+        logging.debug("-> %(username)s ****** %(role)s", {'username': username, 'role': role})
         self.cursor.execute("insert into Users values (?, ?, ?);", (username, password, role))
         self.connection.commit()
 
     def updateUserRole(self, username, newRole):
+        logging.debug("-> %(username)s %(newRole)s", {'username': username, 'newRole': newRole})
         insertQuery = "update Users set role = ? where username = ?;"
         self.cursor.execute(insertQuery, (newRole, username))
         self.connection.commit()
         logging.debug("<-")
 
     def deleteUser(self, username):
-        logging.debug("->", username)
+        logging.debug("-> %(username)s", {'username': username})
         deleteQuery = "delete from Users where username='{u}';".format(u=username)
         self.cursor.execute(deleteQuery)
         self.connection.commit()
         logging.debug("<-")
 
     def isValidLogon(self, username, password):
-        logging.debug("->", username)
+        logging.debug("-> %(username)s", {'username': username})
         self.cursor.execute("select password from Users where username='{u}';".format(u=username))
         storedPassword = self.cursor.fetchall()
         if storedPassword == []:
             # bad username 
-            logging.debug("<-", False)
+            logging.debug("<- " + str(False))
             return False
         isValid = bcrypt.checkpw(password.encode(), storedPassword[0][0])
-        logging.debug("<-", isValid)
+        logging.debug("<- " + str(isValid))
         return isValid
 
     def getUsers(self):

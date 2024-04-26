@@ -48,7 +48,8 @@ def collect_metrics():
     db.addSystemMetrics(metrics['cpu']['usage'], metrics['memory']['percent'], disk_average)
 
     for index, process in enumerate(metrics['process']):
-        db.addProcessMetrics(process['pid'], process['name'], process['cpu_times'].system or 0,
+        processCpu = 0 if process['cpu_times'] == None else process['cpu_times'].system
+        db.addProcessMetrics(process['pid'], process['name'], processCpu,
                         process['cpu_percent'], process['memory_percent'])
     logging.debug("<-")
 
