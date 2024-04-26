@@ -1,10 +1,21 @@
 import sqlite3
 import time
 import datetime
+import logging 
 import bcrypt
+import threading
 
 class Database:
+    instance = None 
+    mutex = threading.Lock()
+
     def __init__(self, dbName) -> None:
+        self.mutex.acquire()
+        logging.debug("-> %(dbName)s", {'dbName': dbName})
+        if self.instance != None:
+            logging.info("Database has already been initialized")
+            self.mutex.release()
+            return
         # initialize the database
         self.databaseName = dbName # either "systemMetrics.db" or "testx.db" depending on context
         self.connection = sqlite3.connect(self.databaseName)
@@ -16,26 +27,34 @@ class Database:
         self.cursor.execute("create table if not exists Processes (pid integer, name text, executionTime real)")
         self.cursor.execute("create table if not exists ProcessMetrics (pid integer, timestamp real, cpuUsage real, memoryUsage real)")
         self.cursor.execute("create table if not exists Users (username text primary key, password text, role text)")
+        logging.info("Database finished initialization")
+        self.instance = self
+        self.mutex.release()
 
         # add default admin user 
         self.cursor.execute("insert into Users values ('admin','$2b$12$NUtvo5eIyaEIHQPewvkQYuZHDbK6lM/j/uSFbfd1uqo/moj2mE4H6', 'Admin');")
 
 
     def addSystemMetrics(self, cpuUsage, memoryUsage, diskUsage):
+        logging.debug("-> %(cpuUsage)d %(memoryUsage)d %(diskUsage)d", {'cpuUsage': cpuUsage, 'memoryUsage': memoryUsage, 'diskUsage': diskUsage})
         currentTimestamp = time.time()
         insertQuery = "insert into SystemMetrics values ({time}, {cUsage}, {mUsage}, {dUsage})".format(time=currentTimestamp, cUsage=cpuUsage, mUsage=memoryUsage, dUsage=diskUsage)
         self.cursor.execute(insertQuery)
         self.connection.commit()
+        logging.debug("<-")
 
     def addProcessMetrics(self, pid, name, executionTime, cpuUsage, memoryUsage):
+        logging.debug("-> %(pid)s %(name)s %(executionTime)d %(cpuUsage)d %(memoryUsage)d", {'pid': pid, 'name': name, 'executionTime': executionTime, 'cpuUsage': cpuUsage, 'memoryUsage': memoryUsage})
         currentTimestamp = time.time()
         # check if pid is in process table, if not then add it
         self.cursor.execute("select * from Processes where pid={id}".format(id=pid))
         if self.cursor.fetchall() == []:
+            logging.info("Adding process {p} to the Processes table".format(p=pid))
             # this process is not in the Processes table yet, add it
             insertProcessQuery = "insert into Processes values ({id}, '{pName}', {eTime})".format(id=pid, pName=name, eTime=executionTime)
             self.cursor.execute(insertProcessQuery)
         else:
+            logging.info("Process {p} is already in the Processes table, updating execution time".format(p=pid))
             # this process is already in the Processes table, update execution time
             updateProcessQuery = "update Processes set executionTime={eTime} where pid={id}".format(eTime=executionTime, id=pid)
             self.cursor.execute(updateProcessQuery)
@@ -43,30 +62,38 @@ class Database:
         insertMetricsQuery = "insert into ProcessMetrics values ({id}, {time}, {cUsage}, {mUsage})".format(id=pid, time=currentTimestamp, cUsage=cpuUsage, mUsage=memoryUsage)
         self.cursor.execute(insertMetricsQuery)
         self.connection.commit()
+        logging.debug("<-")
 
     def addUser(self, username, password, role):
+        logging.debug("-> %(username)s ****** %(role)s", {'username': username, 'role': role})
         self.cursor.execute("insert into Users values (?, ?, ?);", (username, password, role))
         self.connection.commit()
 
     def updateUserRole(self, username, newRole):
+        logging.debug("-> %(username)s %(newRole)s", {'username': username, 'newRole': newRole})
         insertQuery = "update Users set role = ? where username = ?;"
         self.cursor.execute(insertQuery, (newRole, username))
         self.connection.commit()
+        logging.debug("<-")
 
     def deleteUser(self, username):
+        logging.debug("-> %(username)s", {'username': username})
         deleteQuery = "delete from Users where username='{u}';".format(u=username)
         self.cursor.execute(deleteQuery)
         self.connection.commit()
+        logging.debug("<-")
 
     def isValidLogon(self, username, password):
+        logging.debug("-> %(username)s", {'username': username})
         self.cursor.execute("select password from Users where username='{u}';".format(u=username))
         storedPassword = self.cursor.fetchall()
-
         if storedPassword == []:
-            # bad username
+            # bad username 
+            logging.debug("<- " + str(False))
             return False
-
-        return bcrypt.checkpw(password.encode(), storedPassword[0][0])
+        isValid = bcrypt.checkpw(password.encode(), storedPassword[0][0])
+        logging.debug("<- " + str(isValid))
+        return isValid
 
     def getUsers(self):
         self.cursor.execute("select username, role from Users")
@@ -109,6 +136,7 @@ class Database:
     Usage note: this should only be called via the pruneData method and unit tests.
     '''
     def pruneSystemMetrics(self):
+        logging.debug("->")
         # get the oldest timestamp
         oldestTimeQuery = "select min(timestamp) from SystemMetrics;"
         self.cursor.execute(oldestTimeQuery)
@@ -145,12 +173,14 @@ class Database:
         # add to PrunedSystemMetrics datasebase
         addPrunedQuery = "insert into PrunedSystemMetrics values ({start}, {end}, {cpu}, {memory}, {disk});".format(start=oldestTimestamp, end=newestTimestamp, cpu=cpuAvg, memory=memoryAvg, disk=diskAvg)
         self.cursor.execute(addPrunedQuery)
+        logging.debug("<-")
 
     '''
     Prunes the process metrics data by removing data for any processes that have not been active for over a week.
     Usage note: this should only be called via the pruneData method and unit tests.
     '''
     def pruneProcessMetrics(self):
+        logging.debug("->")
         # get all pids from processes table
         allPidsQuery = "select pid from Processes;"
         self.cursor.execute(allPidsQuery)
@@ -164,10 +194,12 @@ class Database:
             latestTimestamp = self.cursor.fetchall()[0][0]
             # if last timestamp >= 1 week ago, delete all records in Processes and ProcessMetrics for this process
             if time.time() - latestTimestamp >= 604800:
+                logging.info("Process {p} is old, pruning data".format(p=pid))
                 deleteProcessesEntryQuery = "delete from Processes where pid={id};".format(id=pid)
                 self.cursor.execute(deleteProcessesEntryQuery)
                 deleteProcessMetricsEntryQuery = "delete from ProcessMetrics where pid={id};".format(id=pid)
                 self.cursor.execute(deleteProcessMetricsEntryQuery)
+        logging.debug("<-")
 
     '''
     This is the method that should be called to prune all the data at once every 12 hours.

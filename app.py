@@ -9,6 +9,9 @@ import time
 import json
 import sched
 import bcrypt
+import logging
+from logging.handlers import RotatingFileHandler
+import os 
 
 app = Flask(__name__)
 app.secret_key = 'secret_key'
@@ -18,8 +21,25 @@ method_scheduler = ms.MethodScheduler
 bokeh_chart = bc.BokehCharts()
 json_update_event = threading.Event()
 
+def setup_logging():
+    log_format = ("%(asctime)s %(threadName)s %(levelname)s %(module)s.%(funcName)s():%(lineno)s %(message)s")
+    log_folder = "log"
+    log_filename = "system-metrics-analyzer.log"
+    log_num_backups = 10
+    log_max_file_bytes = 100000 #100kb
+    logging.basicConfig(level=logging.DEBUG, format=log_format)
+    if not os.path.isdir(log_folder):
+        os.mkdir(log_folder)
+    log_filepath = os.path.join(log_folder, log_filename)
+    rotating_log_file_handler = RotatingFileHandler(log_filepath, maxBytes=log_max_file_bytes, backupCount=log_num_backups)
+    rotating_log_file_handler.setLevel(logging.DEBUG)
+    rotating_log_file_handler.setFormatter(logging.Formatter(log_format))
+    root_logger = logging.getLogger("")
+    root_logger.addHandler(rotating_log_file_handler)
+
 # Function to collect and print metrics
 def collect_metrics():
+    logging.debug("->")
     print(f"Collecting system metrics... {time.strftime('%H:%M:%S', time.localtime())}")
     db = Database.Database("sma_prod.db")
     cursor = db.getCursor()
@@ -28,8 +48,10 @@ def collect_metrics():
     db.addSystemMetrics(metrics['cpu']['usage'], metrics['memory']['percent'], disk_average)
 
     for index, process in enumerate(metrics['process']):
-        db.addProcessMetrics(process['pid'], process['name'], process['cpu_times'].system or 0,
+        processCpu = 0 if process['cpu_times'] == None else process['cpu_times'].system
+        db.addProcessMetrics(process['pid'], process['name'], processCpu,
                         process['cpu_percent'], process['memory_percent'])
+    logging.debug("<-")
 
 def prune_metrics():
     db = Database.Database("sma_prod.db")
@@ -49,6 +71,7 @@ def before_request():
 
 @app.route('/')
 def home():
+    logging.debug("->")
     figure_dict = bokeh_chart.get_charts()
     # This route renders the HTML template for the dashboard.
     return render_template('index.html', cpu_usage=figure_dict['cpu_usage'], mem_usage=figure_dict['mem_usage'],
@@ -56,6 +79,7 @@ def home():
 
 @app.route('/login', methods=['GET', 'POST'])
 def login():
+    logging.debug("->")
     username = request.form.get('username', "")
 
     if request.form:
@@ -90,6 +114,7 @@ def register():
 
 @app.route('/reports', methods=['GET', 'POST'])
 def reports():
+    logging.debug("->")
     if request.form:
         start_date = request.form['start_date']
         end_date = request.form['end_date']
@@ -114,6 +139,7 @@ def reports():
 
 @app.route('/api/metrics/realtime', methods=['GET'])
 def all_api_metrics():
+    logging.debug("->")
     def generate():
         while True:
             if json_update_event.wait(timeout=None):
@@ -147,9 +173,12 @@ def admin():
     return redirect('/')
 
 if __name__ == '__main__':
+    setup_logging()
+    logging.info("*****STARTING SMA*****")
     metric_scheduler = method_scheduler(collect_metrics, interval=30)
     live_view_scheduler = method_scheduler(update_live_view, interval=1)
     prune_metrics_scheduler = method_scheduler(prune_metrics, interval=43200) # 12 hours
 
     # Start the Flask app
     app.run(threaded=True, use_reloader=False)  # use_reloader=False if you don't want the app to restart twice
+    logging.info("Flask app is running")
