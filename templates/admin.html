@@ -35,10 +35,12 @@
                 <input type="text" name="role" data-id='{{ user.username }}' value='{{ user.role }}'></input>
               </td>
               <td>
+                {% if user.role != 'Admin' %}
                 <button type="button" name="delete" data-id='{{ user.username }}' class="btn">Delete</button>
+                {% endif %}
               </td>
             </tr>
-          {% endfor %}
+            {% endfor %}
           </tbody>
         </table>
       </div>

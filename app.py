@@ -11,7 +11,7 @@ import sched
 import bcrypt
 import logging
 from logging.handlers import RotatingFileHandler
-import os 
+import os
 
 app = Flask(__name__)
 app.secret_key = 'secret_key'
@@ -51,11 +51,13 @@ def collect_metrics():
         processCpu = 0 if process['cpu_times'] == None else process['cpu_times'].system
         db.addProcessMetrics(process['pid'], process['name'], processCpu,
                         process['cpu_percent'], process['memory_percent'])
+    db.connection.close()
     logging.debug("<-")
 
 def prune_metrics():
     db = Database.Database("sma_prod.db")
     db.pruneData()
+    db.connection.close()
 
 
 def update_live_view():
@@ -89,6 +91,7 @@ def login():
         if db.isValidLogon(username, password):
             session['logged_in'] = True
             session['role'] = db.getUserRole(username)[0][0]
+            db.connection.close()
             return redirect('/')
 
     return render_template('login.html', username=username)
@@ -108,6 +111,7 @@ def register():
         db = Database.Database("sma_prod.db")
 
         db.addUser(username, hashed_password, 'User')
+        db.connection.close()
         return redirect('/login')
 
     return render_template('register.html', username=username)
@@ -129,6 +133,7 @@ def reports():
         processes_ids |= { int(x[0]) for x in process_metrics }
         processes_ids = list(processes_ids)
         processes = {process[0]: process[1] for process in db.get_process_by_id(processes_ids)}
+        db.connection.close()
         return render_template('report.html', systemMetrics=system_metrics, processMetrics=process_metrics,
                                 processes=processes, success="Report download will begin in just a moment...",
                                 logged_in=session['logged_in'], role=session['role'])
@@ -151,22 +156,23 @@ def all_api_metrics():
 @app.route('/admin', methods=['GET', 'POST'])
 def admin():
     if request.method == 'POST':
+        db = Database.Database("sma_prod.db")
         if 'id' in json.loads(request.data) and json.loads(request.data)['id'] == 'deleteUser':
             username = json.loads(request.data)['username']
-            db = Database.Database("sma_prod.db")
             db.deleteUser(username)
 
         if 'username' in json.loads(request.data) and 'newRole' in json.loads(request.data):
             username = json.loads(request.data)['username']
             newRole = json.loads(request.data)['newRole']
-            db = Database.Database("sma_prod.db")
             db.updateUserRole(username, newRole)
 
+        db.connection.close()
         return jsonify({'status': 200})
 
     if session.get('logged_in') and session.get('role') == 'Admin':
         db = Database.Database("sma_prod.db")
         users = db.getUsers()
+        db.connection.close()
         return render_template('admin.html', logged_in=session['logged_in'], users=[{'username': u, 'role': r} for u, r in users],
                             role=session['role'])
 
