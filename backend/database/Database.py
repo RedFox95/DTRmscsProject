@@ -1,12 +1,12 @@
 import sqlite3
 import time
 import datetime
-import logging 
+import logging
 import bcrypt
 import threading
 
 class Database:
-    instance = None 
+    instance = None
     mutex = threading.Lock()
 
     def __init__(self, dbName) -> None:
@@ -31,8 +31,8 @@ class Database:
         self.instance = self
         self.mutex.release()
 
-        # add default admin user 
-        self.cursor.execute("insert into Users values ('admin','$2b$12$NUtvo5eIyaEIHQPewvkQYuZHDbK6lM/j/uSFbfd1uqo/moj2mE4H6', 'Admin');")
+        # add default admin user
+        self.cursor.execute("insert or ignore into Users values (?, ?, ?);", ('admin', '$2b$12$NUtvo5eIyaEIHQPewvkQYuZHDbK6lM/j/uSFbfd1uqo/moj2mE4H6'.encode(), 'Admin'))
 
 
     def addSystemMetrics(self, cpuUsage, memoryUsage, diskUsage):
@@ -80,6 +80,8 @@ class Database:
         logging.debug("-> %(username)s", {'username': username})
         deleteQuery = "delete from Users where username='{u}';".format(u=username)
         self.cursor.execute(deleteQuery)
+        # deleteQuery = "delete from Users where username = ?"
+        # self.cursor.execute(deleteQuery, (username))
         self.connection.commit()
         logging.debug("<-")
 
@@ -88,7 +90,7 @@ class Database:
         self.cursor.execute("select password from Users where username='{u}';".format(u=username))
         storedPassword = self.cursor.fetchall()
         if storedPassword == []:
-            # bad username 
+            # bad username
             logging.debug("<- " + str(False))
             return False
         isValid = bcrypt.checkpw(password.encode(), storedPassword[0][0])
@@ -149,21 +151,21 @@ class Database:
         newestTimestamp = self.cursor.fetchall()[0][0]
 
         # get all the info between, each in a separate result
-        getAllCpuData = "select cpuUsage from SystemMetrics where timestamp>={old} and timestamp<={new};".format(old=oldestTimestamp, new=newestTimestamp)
-        self.cursor.execute(getAllCpuData)
+        getAllCpuData = "select cpuUsage from SystemMetrics where timestamp >= ? and timestamp <= ?"
+        self.cursor.execute(getAllCpuData, (oldestTimestamp, newestTimestamp))
         allCpuData = self.cursor.fetchall()
 
-        getAllMemoryData = "select memoryUsage from SystemMetrics where timestamp>={old} and timestamp<={new};".format(old=oldestTimestamp, new=newestTimestamp)
-        self.cursor.execute(getAllMemoryData)
+        getAllMemoryData = "select memoryUsage from SystemMetrics where timestamp >= ? and timestamp <= ?"
+        self.cursor.execute(getAllMemoryData, (oldestTimestamp, newestTimestamp))
         allMemoryData = self.cursor.fetchall()
 
-        getAllDiskData = "select diskUsage from SystemMetrics where timestamp>={old} and timestamp<={new};".format(old=oldestTimestamp, new=newestTimestamp)
-        self.cursor.execute(getAllDiskData)
+        getAllDiskData = "select diskUsage from SystemMetrics where timestamp >= ? and timestamp <= ?"
+        self.cursor.execute(getAllDiskData, (oldestTimestamp, newestTimestamp))
         allDiskData = self.cursor.fetchall()
 
         # remove from SystemMetrics database
-        deleteQuery = "delete from SystemMetrics where timestamp>={old} and timestamp<={new};".format(old=oldestTimestamp, new=newestTimestamp)
-        self.cursor.execute(deleteQuery)
+        deleteQuery = "delete from SystemMetrics where timestamp >= ? and timestamp <= ?"
+        self.cursor.execute(deleteQuery, (oldestTimestamp, newestTimestamp))
 
         # convert to averages
         cpuAvg = getAverageData(allCpuData)
@@ -171,8 +173,8 @@ class Database:
         diskAvg = getAverageData(allDiskData)
 
         # add to PrunedSystemMetrics datasebase
-        addPrunedQuery = "insert into PrunedSystemMetrics values ({start}, {end}, {cpu}, {memory}, {disk});".format(start=oldestTimestamp, end=newestTimestamp, cpu=cpuAvg, memory=memoryAvg, disk=diskAvg)
-        self.cursor.execute(addPrunedQuery)
+        addPrunedQuery = "insert into PrunedSystemMetrics values (?, ?, ?, ?, ?)"
+        self.cursor.execute(addPrunedQuery, (oldestTimestamp, newestTimestamp, cpuAvg, memoryAvg, diskAvg))
         logging.debug("<-")
 
     '''
@@ -221,6 +223,8 @@ Returns the average of the data.
 dataList: list of the data to average in the form returned by sql queries (ex: [(a,), (b,), (c,)])
 '''
 def getAverageData(dataList):
+    if len(dataList) == 0: return 0
+
     sum = 0
     for data in dataList:
         sum += data[0]
