@@ -32,7 +32,11 @@
                 {{ user.username }}
               </td>
               <td>
+                {% if user.role == 'Admin' %}
+                <input type="text" name="role" data-id='{{ user.username }}' value='{{ user.role }}' readonly></input>
+                {% else %}
                 <input type="text" name="role" data-id='{{ user.username }}' value='{{ user.role }}'></input>
+                {% endif %}
               </td>
               <td>
                 {% if user.role != 'Admin' %}
