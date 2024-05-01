@@ -14,7 +14,7 @@ from logging.handlers import RotatingFileHandler
 import os
 
 app = Flask(__name__)
-app.secret_key = 'secret_key'
+app.secret_key = bcrypt.hashpw(datetime.datetime.now().strftime("%Y-%m-%dT%H:%M:%S").encode('utf-8'), bcrypt.gensalt())
 
 system_metrics = sm.SystemMetrics()
 method_scheduler = ms.MethodScheduler
