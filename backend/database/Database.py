@@ -6,20 +6,22 @@ import bcrypt
 import threading
 
 class Database:
-    instance = None
     mutex = threading.Lock()
 
     def __init__(self, dbName) -> None:
         self.mutex.acquire()
         logging.debug("-> %(dbName)s", {'dbName': dbName})
-        if self.instance != None:
-            logging.info("Database has already been initialized")
-            self.mutex.release()
-            return
-        # initialize the database
+        # initialize the database connection
         self.databaseName = dbName # either "systemMetrics.db" or "testx.db" depending on context
         self.connection = sqlite3.connect(self.databaseName)
         self.cursor = self.connection.cursor()
+
+        # check if setup is needed, if not then return
+        self.cursor.execute("pragma table_info(SystemMetrics);")
+        if self.cursor.fetchall() != []:
+            logging.info("Database has already been setup")
+            self.mutex.release()
+            return
 
         # setup tables
         self.cursor.execute("create table if not exists SystemMetrics (timestamp real, cpuUsage real, memoryUsage real, diskUsage real)")
@@ -28,7 +30,6 @@ class Database:
         self.cursor.execute("create table if not exists ProcessMetrics (pid integer, timestamp real, cpuUsage real, memoryUsage real)")
         self.cursor.execute("create table if not exists Users (username text primary key, password text, role text)")
         logging.info("Database finished initialization")
-        self.instance = self
         self.mutex.release()
 
         # add default admin user
