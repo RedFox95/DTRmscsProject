@@ -60,10 +60,15 @@ class SystemMetrics():
         processes = []
         for process in psutil.process_iter(['pid', 'name', 'cpu_percent', 'memory_percent', 'cpu_times', 'create_time']):
             try:
-                processes.append(process.info)
+                process.cpu_percent(interval=None)  # Set interval=None for non-blocking call
+                if process.info['cpu_percent'] is not None:  # Filter out None values
+                    processes.append(process.info)
             except (psutil.NoSuchProcess, psutil.AccessDenied, psutil.ZombieProcess):
-                pass
-        return processes[0:10]
+                continue
+        # Sort processes by CPU usage before slicing
+        processes.sort(key=lambda x: x.get('cpu_percent', 0), reverse=True)
+        return processes[:10]  # Only return the top 10 processes
+
 
     def get_all_info(self):
         return {
